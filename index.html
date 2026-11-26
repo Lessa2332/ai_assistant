@@ -10,12 +10,19 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Three.js Spatial 3D Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Google Gen AI SDK (NEW) -->
-    <script src="https://cdn.jsdelivr.net/npm/@google/genai@latest/dist/index.umd.js"></script>
     <!-- Inter & Space Grotesk Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- ESM Import Map for Gemini SDK -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@google/genai": "https://cdn.jsdelivr.net/npm/@google/genai@1.30.0/+esm"
+        }
+    }
+    </script>
     
     <script>
         tailwind.config = {
@@ -23,17 +30,8 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: {
-                            300: '#FFE885',
-                            400: '#FFD43B',
-                            500: '#F5B800',
-                            600: '#C99200',
-                        },
-                        spatial: {
-                            cyan: '#38BDF8',
-                            violet: '#A855F7',
-                            obsidian: '#06070B',
-                        }
+                        gold: { 300: '#FFE885', 400: '#FFD43B', 500: '#F5B800', 600: '#C99200' },
+                        spatial: { cyan: '#38BDF8', violet: '#A855F7', obsidian: '#06070B' }
                     },
                     fontFamily: {
                         sans: ['Inter', 'Space Grotesk', 'sans-serif'],
@@ -51,9 +49,7 @@
             --scroll-energy: 0;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
 
         body {
             background-color: #06070B;
@@ -89,20 +85,12 @@
             transition: opacity 0.25s ease;
         }
 
-        .content-layer {
-            position: relative;
-            z-index: 2;
-        }
+        .content-layer { position: relative; z-index: 2; }
 
         /* Liquid Glass Surface with Edge Refraction & Specular Rim */
         .liquid-glass {
             position: relative;
-            background: linear-gradient(
-                145deg,
-                rgba(22, 26, 38, 0.68) 0%,
-                rgba(11, 13, 20, 0.56) 55%,
-                rgba(24, 20, 36, 0.64) 100%
-            );
+            background: linear-gradient(145deg, rgba(22, 26, 38, 0.68) 0%, rgba(11, 13, 20, 0.56) 55%, rgba(24, 20, 36, 0.64) 100%);
             backdrop-filter: blur(22px) saturate(155%);
             -webkit-backdrop-filter: blur(22px) saturate(155%);
             border: 1px solid rgba(255, 255, 255, 0.16);
@@ -122,13 +110,7 @@
             inset: 0;
             border-radius: inherit;
             padding: 1px;
-            background: linear-gradient(
-                120deg,
-                rgba(255, 212, 59, calc(0.35 + var(--scroll-energy) * 0.45)),
-                rgba(56, 189, 248, 0.24),
-                rgba(168, 85, 247, 0.24),
-                rgba(255, 255, 255, 0.22)
-            );
+            background: linear-gradient(120deg, rgba(255, 212, 59, calc(0.35 + var(--scroll-energy) * 0.45)), rgba(56, 189, 248, 0.24), rgba(168, 85, 247, 0.24), rgba(255, 255, 255, 0.22));
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -141,25 +123,16 @@
             -webkit-backdrop-filter: blur(16px) saturate(140%);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 16px;
-            box-shadow:
-                0 10px 28px -10px rgba(0, 0, 0, 0.65),
-                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.18);
         }
 
         .liquid-glass-gold {
-            background: linear-gradient(
-                135deg,
-                rgba(255, 212, 59, 0.26) 0%,
-                rgba(245, 184, 0, 0.14) 55%,
-                rgba(168, 85, 247, 0.14) 100%
-            );
+            background: linear-gradient(135deg, rgba(255, 212, 59, 0.26) 0%, rgba(245, 184, 0, 0.14) 55%, rgba(168, 85, 247, 0.14) 100%);
             backdrop-filter: blur(20px) saturate(160%);
             -webkit-backdrop-filter: blur(20px) saturate(160%);
             border: 1px solid rgba(255, 212, 59, 0.45);
             border-radius: 20px;
-            box-shadow:
-                0 14px 36px -10px rgba(255, 212, 59, 0.22),
-                inset 0 1px 1px rgba(255, 255, 255, 0.35);
+            box-shadow: 0 14px 36px -10px rgba(255, 212, 59, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.35);
         }
 
         /* Luminous Glass Buttons with Specular Sheen & Magnetic Support */
@@ -172,9 +145,7 @@
             border: 1px solid rgba(255, 255, 255, 0.55);
             border-radius: 14px;
             min-height: 48px;
-            box-shadow:
-                0 10px 26px -6px rgba(255, 212, 59, 0.45),
-                inset 0 1px 1px rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 26px -6px rgba(255, 212, 59, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.8);
             transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, filter 0.2s ease;
             touch-action: manipulation;
             will-change: transform;
@@ -193,21 +164,14 @@
             pointer-events: none;
         }
 
-        .glass-btn-gold:hover:not(:disabled)::after {
-            left: 125%;
-        }
+        .glass-btn-gold:hover:not(:disabled)::after { left: 125%; }
 
         .glass-btn-gold:hover:not(:disabled) {
             filter: brightness(1.06);
-            box-shadow:
-                0 14px 32px -6px rgba(255, 212, 59, 0.6),
-                inset 0 1px 1px rgba(255, 255, 255, 0.9);
+            box-shadow: 0 14px 32px -6px rgba(255, 212, 59, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.9);
         }
 
-        .glass-btn-gold:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
+        .glass-btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .glass-btn-lens {
             background: rgba(20, 24, 36, 0.72);
@@ -218,9 +182,7 @@
             border: 1px solid rgba(255, 212, 59, 0.36);
             border-radius: 14px;
             min-height: 48px;
-            box-shadow:
-                0 8px 24px -8px rgba(0, 0, 0, 0.7),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background 0.2s ease;
             touch-action: manipulation;
             will-change: transform;
@@ -258,28 +220,17 @@
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #06070B; }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #FFD43B, #38BDF8);
-            border-radius: 999px;
-        }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFD43B, #38BDF8); border-radius: 999px; }
 
         /* Camera Modal Overlay */
-        #cameraStreamVideo {
-            object-fit: cover;
-            width: 100%;
-            height: 100%;
-            border-radius: 14px;
-        }
+        #cameraStreamVideo { object-fit: cover; width: 100%; height: 100%; border-radius: 14px; }
 
         @media print {
             .no-print, #spatialCanvas, .ambient-caustics { display: none !important; }
             body { background: #FFFFFF !important; color: #000000 !important; }
             .liquid-glass, .liquid-glass-subtle, .liquid-glass-gold, table {
-                background: #FFFFFF !important;
-                backdrop-filter: none !important;
-                border: 1px solid #000000 !important;
-                box-shadow: none !important;
-                color: #000000 !important;
+                background: #FFFFFF !important; backdrop-filter: none !important;
+                border: 1px solid #000000 !important; box-shadow: none !important; color: #000000 !important;
             }
             th, td { border: 1px solid #000000 !important; color: #000000 !important; }
         }
@@ -702,7 +653,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-            // Three-point spatial lighting: Gold key, Cyan rim, Violet ambient fill
+            // Three-point spatial lighting
             const ambientLight = new THREE.AmbientLight(0xc4b5fd, 0.75);
             scene.add(ambientLight);
 
@@ -714,7 +665,7 @@
             cyanLight.position.set(-4.5, -2.5, 4.5);
             scene.add(cyanLight);
 
-            // Procedural canvas texture that shifts between crystalline faceted & topographical contour patterns
+            // Procedural canvas texture
             function createProceduralTexture(mode = 0) {
                 const texCanvas = document.createElement('canvas');
                 texCanvas.width = 256;
@@ -723,7 +674,6 @@
                 ctx.clearRect(0, 0, 256, 256);
 
                 if (mode === 0) {
-                    // Topographical isolines
                     ctx.strokeStyle = 'rgba(255, 212, 59, 0.35)';
                     ctx.lineWidth = 1.5;
                     for (let r = 18; r < 140; r += 18) {
@@ -738,7 +688,6 @@
                         ctx.stroke();
                     }
                 } else {
-                    // Crystalline meridian lattice
                     ctx.strokeStyle = 'rgba(56, 189, 248, 0.42)';
                     ctx.lineWidth = 1.4;
                     for (let i = -256; i < 512; i += 24) {
@@ -757,56 +706,38 @@
             const topoTexture = createProceduralTexture(0);
             const latticeTexture = createProceduralTexture(1);
 
-            // Sculptural polyhedron assembly that explodes into spatial layers during scroll
             const assembly = new THREE.Group();
             scene.add(assembly);
 
             const coreGeo = new THREE.IcosahedronGeometry(1.55, 1);
             const coreMat = new THREE.MeshPhysicalMaterial({
-                color: 0xffd43b,
-                roughness: 0.22,
-                metalness: 0.35,
-                transparent: true,
-                opacity: 0.28,
-                map: topoTexture,
-                wireframe: false
+                color: 0xffd43b, roughness: 0.22, metalness: 0.35, transparent: true, opacity: 0.28, map: topoTexture, wireframe: false
             });
             const coreMesh = new THREE.Mesh(coreGeo, coreMat);
             assembly.add(coreMesh);
 
             const wireGeo = new THREE.IcosahedronGeometry(1.62, 1);
             const wireMat = new THREE.MeshBasicMaterial({
-                color: 0xffd43b,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.24
+                color: 0xffd43b, wireframe: true, transparent: true, opacity: 0.24
             });
             const wireMesh = new THREE.Mesh(wireGeo, wireMat);
             assembly.add(wireMesh);
 
             const outerShellGeo = new THREE.OctahedronGeometry(2.35, 0);
             const outerShellMat = new THREE.MeshPhysicalMaterial({
-                color: 0x38bdf8,
-                roughness: 0.15,
-                metalness: 0.1,
-                transparent: true,
-                opacity: 0.18,
-                map: latticeTexture
+                color: 0x38bdf8, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.18, map: latticeTexture
             });
             const outerShell = new THREE.Mesh(outerShellGeo, outerShellMat);
             assembly.add(outerShell);
 
             const orbitRingGeo = new THREE.TorusGeometry(2.85, 0.025, 16, 100);
             const orbitRingMat = new THREE.MeshBasicMaterial({
-                color: 0xa855f7,
-                transparent: true,
-                opacity: 0.42
+                color: 0xa855f7, transparent: true, opacity: 0.42
             });
             const orbitRing = new THREE.Mesh(orbitRingGeo, orbitRingMat);
             orbitRing.rotation.x = Math.PI / 3;
             assembly.add(orbitRing);
 
-            // Floating spatial node particles
             const particleCount = 90;
             const particlePositions = new Float32Array(particleCount * 3);
             for (let i = 0; i < particleCount; i++) {
@@ -819,16 +750,10 @@
             }
             const particlesGeo = new THREE.BufferGeometry();
             particlesGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-            const particlesMat = new THREE.PointsMaterial({
-                color: 0xffe885,
-                size: 0.055,
-                transparent: true,
-                opacity: 0.65
-            });
+            const particlesMat = new THREE.PointsMaterial({ color: 0xffe885, size: 0.055, transparent: true, opacity: 0.65 });
             const particles = new THREE.Points(particlesGeo, particlesMat);
             assembly.add(particles);
 
-            // Scroll & pointer state for scrollytelling + liquid refraction
             let scrollProgress = 0;
             let lastScrollY = window.scrollY;
             let scrollVelocity = 0;
@@ -838,7 +763,6 @@
             window.addEventListener('scroll', () => {
                 const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
                 scrollProgress = Math.min(1, Math.max(0, window.scrollY / docHeight));
-
                 const currentY = window.scrollY;
                 scrollVelocity = Math.min(1, Math.abs(currentY - lastScrollY) / 45);
                 lastScrollY = currentY;
@@ -862,7 +786,6 @@
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
             });
 
-            // Magnetic pull for buttons and action icons on pointer devices
             if (window.matchMedia('(pointer: fine)').matches) {
                 document.querySelectorAll('.magnetic-target').forEach((el) => {
                     el.addEventListener('mousemove', (e) => {
@@ -877,16 +800,12 @@
                 });
             }
 
-            // Animation loop
             const clock = new THREE.Clock();
             function animate() {
                 requestAnimationFrame(animate);
                 const t = clock.getElapsedTime();
-
-                // Decay scroll velocity smoothly
                 scrollVelocity *= 0.9;
 
-                // Scrollytelling separation into spatial layers
                 const explode = scrollProgress * 1.15 + scrollVelocity * 0.22;
                 coreMesh.position.set(0, explode * 0.35, 0);
                 wireMesh.scale.setScalar(1 + explode * 0.14);
@@ -896,7 +815,6 @@
                 orbitRing.rotation.z = t * 0.18 + scrollProgress * Math.PI;
                 particles.scale.setScalar(1 + explode * 0.25);
 
-                // Shift material texture/tint smoothly across scroll stages
                 if (scrollProgress > 0.45 && coreMat.map !== latticeTexture) {
                     coreMat.map = latticeTexture;
                     coreMat.needsUpdate = true;
@@ -905,7 +823,6 @@
                     coreMat.needsUpdate = true;
                 }
 
-                // Gentle rotation + pointer parallax
                 assembly.rotation.y += 0.0035 + scrollVelocity * 0.015;
                 assembly.rotation.x = THREE.MathUtils.lerp(assembly.rotation.x, pointerY * 0.35 + scrollProgress * 0.6, 0.05);
                 assembly.position.x = THREE.MathUtils.lerp(assembly.position.x, pointerX * 0.65, 0.04);
@@ -915,7 +832,10 @@
             }
             animate();
         })();
+    </script>
 
+    <!-- MAIN APPLICATION LOGIC (ES Module) -->
+    <script type="module">
         // --- Application State ---
         let state = {
             apiKey: localStorage.getItem('gemini_api_key') || '',
@@ -928,32 +848,64 @@
             gradingResults: [],
             cameraStream: null,
             cameraTargetMode: null,
-            genAI: null // To hold the SDK instance
+            genAI: null
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // ESM Import for Gemini SDK
+        let GoogleGenAI = null;
+        try {
+            const module = await import('@google/genai');
+            GoogleGenAI = module.GoogleGenAI;
+            console.log("✅ Gemini SDK успішно завантажено.");
+        } catch (e) {
+            console.error("❌ Помилка завантаження Gemini SDK:", e);
+            // Show alert later when DOM is ready
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
             updateApiKeyBadge();
             syncStepperVisuals();
-            // Only open modal if no key is saved
+            
+            // Expose functions to global scope for inline onclick handlers
+            window.openApiKeyModal = openApiKeyModal;
+            window.closeApiKeyModal = closeApiKeyModal;
+            window.saveApiKey = saveApiKey;
+            window.handleClassChange = handleClassChange;
+            window.setStep = setStep;
+            window.openLiveCamera = openLiveCamera;
+            window.closeLiveCamera = closeLiveCamera;
+            window.captureCameraSnapshot = captureCameraSnapshot;
+            window.handleTaskFileSelect = handleTaskFileSelect;
+            window.removeTaskImage = removeTaskImage;
+            window.generateKeyFromTask = generateKeyFromTask;
+            window.updateKeyQuestion = updateKeyQuestion;
+            window.deleteKeyQuestion = deleteKeyQuestion;
+            window.addNewQuestionToKey = addNewQuestionToKey;
+            window.confirmKeyAndProceed = confirmKeyAndProceed;
+            window.handleStudentFilesSelect = handleStudentFilesSelect;
+            window.removeStudentFile = removeStudentFile;
+            window.startBatchGrading = startBatchGrading;
+            window.copyTableForExcel = copyTableForExcel;
+            window.exportCSV = exportCSV;
+            window.closeAlert = closeAlert;
+
+            if (!GoogleGenAI) {
+                showAlert('Помилка завантаження модулів ШІ. Перевірте інтернет-з\'єднання та оновіть сторінку.', 'warning');
+                return;
+            }
+
             if (!state.apiKey) {
                 openApiKeyModal();
             } else {
-                initGenAI(); // Initialize if key exists
+                initGenAI();
             }
         });
 
-        // Initialize the Google Gen AI SDK
         function initGenAI() {
-            if (!state.apiKey) return false;
+            if (!state.apiKey || !GoogleGenAI) return false;
             try {
-                // The UMD build exposes the classes under the global `GoogleGenAI` object
-                if (window.GoogleGenAI && window.GoogleGenAI.GoogleGenAI) {
-                    state.genAI = new window.GoogleGenAI.GoogleGenAI({ apiKey: state.apiKey });
-                    return true;
-                } else {
-                    console.error('GoogleGenAI SDK not loaded.');
-                    return false;
-                }
+                state.genAI = new GoogleGenAI({ apiKey: state.apiKey });
+                return true;
             } catch (e) {
                 console.error('Failed to initialize GenAI:', e);
                 return false;
@@ -976,7 +928,6 @@
 
         function saveApiKey() {
             const val = document.getElementById('apiKeyInput').value.trim();
-            // Validate the key format (accept both new AQ. and legacy AIza)
             if (!val || (!val.startsWith('AQ.') && !val.startsWith('AIza') && !val.startsWith('gd_'))) {
                 showAlert('Будь ласка, введіть коректний Gemini API ключ (він має починатися з AQ., AIza або gd_).', 'warning');
                 return;
@@ -1045,7 +996,6 @@
             document.getElementById('step3Container').classList.toggle('hidden', stepNum !== 3);
         }
 
-        // --- Live Camera Capture (WebRTC with safe fallback) ---
         async function openLiveCamera(targetMode) {
             state.cameraTargetMode = targetMode;
             const modal = document.getElementById('cameraModal');
@@ -1100,7 +1050,6 @@
             }
         }
 
-        // --- Step 1: Task File Upload ---
         function handleTaskFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1127,7 +1076,6 @@
             document.getElementById('taskPreviewContainer').classList.add('hidden');
         }
 
-        // --- Step 1 -> Step 2: Generate Grading Key via Gemini API (Updated to use SDK) ---
         async function generateKeyFromTask() {
             if (!state.apiKey) { openApiKeyModal(); return; }
             if (!state.taskImageBase64) { showAlert('Спочатку завантажте або сфотографуйте завдання.', 'warning'); return; }
@@ -1157,7 +1105,7 @@
 
             try {
                 const response = await state.genAI.models.generateContent({
-                    model: 'gemini-2.5-flash', // Or your preferred model
+                    model: 'gemini-2.5-flash',
                     contents: [{
                         role: 'user',
                         parts: [
@@ -1168,7 +1116,6 @@
                     config: { responseMimeType: "application/json" }
                 });
 
-                // The SDK response structure is different
                 const rawText = response.text;
                 const parsed = JSON.parse(rawText);
 
@@ -1185,7 +1132,6 @@
             }
         }
 
-        // --- Step 2: Key Editing ---
         function renderKeyQuestions() {
             const container = document.getElementById('keyQuestionsList');
             container.innerHTML = '';
@@ -1252,7 +1198,6 @@
             showAlert('Ключ підтверджено! Тепер додайте фото робіт учнів.', 'success');
         }
 
-        // --- Step 3: Student Works & Batch Grading ---
         function handleStudentFilesSelect(e) {
             const files = Array.from(e.target.files || []);
             files.forEach(file => {
@@ -1395,7 +1340,6 @@ ${keyPromptStr}
             document.getElementById('resultsCount').textContent = String(state.gradingResults.length);
         }
 
-        // --- Table Export Helpers ---
         function copyTableForExcel() {
             if (!state.gradingResults || state.gradingResults.length === 0) return;
             let tsv = "Клас\tПрізвище та ім'я\tОцінка (з 12)\tРозбір помилок\tФідбек учню\tПорада вчителю\n";
@@ -1431,7 +1375,6 @@ ${keyPromptStr}
             document.body.removeChild(link);
         }
 
-        // --- UI Alerts & Escaping ---
         function showAlert(msg, type = 'info') {
             const alertBox = document.getElementById('alertBox');
             const alertText = document.getElementById('alertText');
