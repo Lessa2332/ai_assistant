@@ -10,6 +10,8 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Three.js Spatial 3D Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Gen AI SDK (NEW) -->
+    <script src="https://cdn.jsdelivr.net/npm/@google/genai@latest/dist/index.umd.js"></script>
     <!-- Inter & Space Grotesk Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -654,14 +656,14 @@
             </div>
 
             <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Вставте ваш ключ Gemini API. Він зберігається лише локально у <code class="text-gold-300">localStorage</code> цього браузера і не передається третім сервісам.
+                Вставте ваш ключ Gemini API (новий формат <code class="text-gold-300">AQ...</code> або старий <code class="text-gold-300">AIza...</code>). Він зберігається лише локально у <code class="text-gold-300">localStorage</code> цього браузера.
             </p>
 
             <div>
                 <label for="apiKeyInput" class="block text-xs font-bold text-gold-300 uppercase tracking-wider mb-2">
                     Ключ API (Gemini)
                 </label>
-                <input type="password" id="apiKeyInput" placeholder="AIza..." class="glass-input w-full px-4 text-sm font-medium">
+                <input type="password" id="apiKeyInput" placeholder="AQ.Ab8..." class="glass-input w-full px-4 text-sm font-medium">
             </div>
 
             <div class="text-xs">
@@ -925,14 +927,38 @@
             studentFiles: [],
             gradingResults: [],
             cameraStream: null,
-            cameraTargetMode: null
+            cameraTargetMode: null,
+            genAI: null // To hold the SDK instance
         };
 
         window.addEventListener('DOMContentLoaded', () => {
             updateApiKeyBadge();
             syncStepperVisuals();
-            if (!state.apiKey) openApiKeyModal();
+            // Only open modal if no key is saved
+            if (!state.apiKey) {
+                openApiKeyModal();
+            } else {
+                initGenAI(); // Initialize if key exists
+            }
         });
+
+        // Initialize the Google Gen AI SDK
+        function initGenAI() {
+            if (!state.apiKey) return false;
+            try {
+                // The UMD build exposes the classes under the global `GoogleGenAI` object
+                if (window.GoogleGenAI && window.GoogleGenAI.GoogleGenAI) {
+                    state.genAI = new window.GoogleGenAI.GoogleGenAI({ apiKey: state.apiKey });
+                    return true;
+                } else {
+                    console.error('GoogleGenAI SDK not loaded.');
+                    return false;
+                }
+            } catch (e) {
+                console.error('Failed to initialize GenAI:', e);
+                return false;
+            }
+        }
 
         function updateApiKeyBadge() {
             const badgeText = document.getElementById('apiKeyBadgeText');
@@ -950,15 +976,21 @@
 
         function saveApiKey() {
             const val = document.getElementById('apiKeyInput').value.trim();
-            if (!val) {
-                showAlert('Будь ласка, введіть коректний Gemini API ключ.', 'warning');
+            // Validate the key format (accept both new AQ. and legacy AIza)
+            if (!val || (!val.startsWith('AQ.') && !val.startsWith('AIza') && !val.startsWith('gd_'))) {
+                showAlert('Будь ласка, введіть коректний Gemini API ключ (він має починатися з AQ., AIza або gd_).', 'warning');
                 return;
             }
             state.apiKey = val;
             localStorage.setItem('gemini_api_key', val);
             updateApiKeyBadge();
-            closeApiKeyModal();
-            showAlert('API ключ збережено локально у вашому браузері.', 'success');
+            
+            if (initGenAI()) {
+                showAlert('API ключ збережено та SDK ініціалізовано.', 'success');
+                closeApiKeyModal();
+            } else {
+                showAlert('Ключ збережено, але не вдалося ініціалізувати SDK. Перевірте консоль.', 'warning');
+            }
         }
 
         function handleClassChange(val) {
@@ -1095,10 +1127,14 @@
             document.getElementById('taskPreviewContainer').classList.add('hidden');
         }
 
-        // --- Step 1 -> Step 2: Generate Grading Key via Gemini API ---
+        // --- Step 1 -> Step 2: Generate Grading Key via Gemini API (Updated to use SDK) ---
         async function generateKeyFromTask() {
             if (!state.apiKey) { openApiKeyModal(); return; }
             if (!state.taskImageBase64) { showAlert('Спочатку завантажте або сфотографуйте завдання.', 'warning'); return; }
+            if (!state.genAI && !initGenAI()) {
+                showAlert('Не вдалося ініціалізувати Gemini SDK. Перевірте ключ.', 'warning');
+                return;
+            }
 
             const btn = document.getElementById('btnGenerateKey');
             btn.disabled = true;
@@ -1120,26 +1156,20 @@
 }`;
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                { inline_data: { mime_type: state.taskImageType, data: state.taskImageBase64 } }
-                            ]
-                        }],
-                        generationConfig: { response_mime_type: "application/json" }
-                    })
+                const response = await state.genAI.models.generateContent({
+                    model: 'gemini-2.5-flash', // Or your preferred model
+                    contents: [{
+                        role: 'user',
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: state.taskImageType, data: state.taskImageBase64 } }
+                        ]
+                    }],
+                    config: { responseMimeType: "application/json" }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-                const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                // The SDK response structure is different
+                const rawText = response.text;
                 const parsed = JSON.parse(rawText);
 
                 state.keyQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
@@ -1147,6 +1177,7 @@
                 setStep(2);
                 showAlert('Ключ згенеровано! Перевірте бали та підтвердьте його.', 'success');
             } catch (err) {
+                console.error(err);
                 showAlert('Не вдалося сформувати ключ через Gemini API: ' + err.message, 'warning');
             } finally {
                 btn.disabled = false;
@@ -1265,6 +1296,10 @@
 
         async function startBatchGrading() {
             if (!state.apiKey) { openApiKeyModal(); return; }
+            if (!state.genAI && !initGenAI()) {
+                showAlert('Не вдалося ініціалізувати Gemini SDK.', 'warning');
+                return;
+            }
             if (state.studentFiles.length === 0) return;
 
             document.getElementById('gradingLoader').classList.remove('hidden');
@@ -1287,26 +1322,19 @@ ${keyPromptStr}
             const results = [];
             for (const file of state.studentFiles) {
                 try {
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { text: prompt },
-                                    { inline_data: { mime_type: file.mimeType, data: file.base64 } }
-                                ]
-                            }],
-                            generationConfig: { response_mime_type: "application/json" }
-                        })
+                    const response = await state.genAI.models.generateContent({
+                        model: 'gemini-2.5-flash',
+                        contents: [{
+                            role: 'user',
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: file.mimeType, data: file.base64 } }
+                            ]
+                        }],
+                        config: { responseMimeType: "application/json" }
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const rawText = response.text;
                     const parsed = JSON.parse(rawText);
                     const boundedScore = Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1)));
 
@@ -1318,6 +1346,7 @@ ${keyPromptStr}
                         teacherAdvice: parsed.teacherAdvice || 'Закріпити ключові поняття теми.'
                     });
                 } catch (err) {
+                    console.error(err);
                     results.push({
                         studentName: file.name,
                         totalScore: 0,
