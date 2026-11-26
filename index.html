@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ГеоГраф • Bento Neo-Brutalist AI Assistant</title>
+    <title>ГеоГраф • Liquid Glass &amp; Spatial 3D Assistant</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Three.js Spatial 3D Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Inter & Space Grotesk Fonts -->
+    <!-- Inter & Space Grotesk Variable Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=Space+Grotesk:wght@500..700&display=swap" rel="stylesheet">
     
     <!-- ESM Import Map for Gemini SDK -->
     <script type="importmap">
@@ -42,11 +43,13 @@
         }
     </script>
     <style>
-        /* LIQUID GLASS & SPATIAL 3D DESIGN TOKENS */
         :root {
             --refract-shift: 0px;
             --refract-glow: 0.22;
             --scroll-energy: 0;
+            --kinetic-wght: 800;
+            --kinetic-skew: 0deg;
+            --kinetic-track: -0.02em;
         }
 
         html { scroll-behavior: smooth; }
@@ -58,6 +61,15 @@
             overflow-x: hidden;
             padding-bottom: env(safe-area-inset-bottom);
             position: relative;
+        }
+
+        .kinetic-title {
+            font-variation-settings: "wght" var(--kinetic-wght);
+            letter-spacing: var(--kinetic-track);
+            transform: skewX(var(--kinetic-skew));
+            display: inline-block;
+            transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), letter-spacing 0.14s ease;
+            will-change: transform, font-variation-settings, letter-spacing;
         }
 
         /* Spatial WebGL 3D Canvas Layer */
@@ -193,7 +205,6 @@
             background: rgba(30, 36, 54, 0.85);
         }
 
-        /* Glass Input Controls */
         .glass-input {
             background: rgba(8, 10, 16, 0.66);
             backdrop-filter: blur(12px);
@@ -217,12 +228,20 @@
             will-change: transform;
         }
 
-        /* Custom Scrollbar */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            .kinetic-title { transform: none !important; }
+        }
+
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #06070B; }
         ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFD43B, #38BDF8); border-radius: 999px; }
 
-        /* Camera Modal Overlay */
         #cameraStreamVideo { object-fit: cover; width: 100%; height: 100%; border-radius: 14px; }
 
         @media print {
@@ -251,7 +270,7 @@
             </div>
             <div class="hidden sm:flex items-center space-x-4 text-slate-400">
                 <span class="flex items-center space-x-1"><i class="ph ph-cube text-sky-400"></i><span>3D Scrollytelling</span></span>
-                <span class="flex items-center space-x-1"><i class="ph ph-camera text-purple-400"></i><span>iOS &amp; Android Камера</span></span>
+                <span class="flex items-center space-x-1"><i class="ph ph-camera text-purple-400"></i><span>Задня камера iOS / Android</span></span>
                 <span class="flex items-center space-x-1"><i class="ph ph-shield-check text-gold-400"></i><span>Локальний Ключ</span></span>
             </div>
         </div>
@@ -265,7 +284,7 @@
                     <i class="ph-duotone ph-globe-hemisphere-west text-3xl text-gold-300"></i>
                 </div>
                 <div>
-                    <h1 id="mainTitle" class="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
+                    <h1 id="mainTitle" class="kinetic-title font-display text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
                         ГеоГраф <span class="bg-gradient-to-r from-gold-300 via-gold-400 to-amber-300 bg-clip-text text-transparent">Spatial AI</span>
                     </h1>
                     <p class="text-[11px] sm:text-xs font-medium text-slate-400">
@@ -302,7 +321,7 @@
                     <span class="text-[11px] font-bold uppercase tracking-widest text-gold-300">КРОК 01 • ПІДГОТОВКА</span>
                     <span class="w-8 h-8 rounded-full bg-gold-400 text-black font-extrabold flex items-center justify-center text-xs shadow-[0_0_15px_rgba(255,212,59,0.5)]">1</span>
                 </div>
-                <div class="font-display font-bold text-lg text-white mt-2.5 group-hover:text-gold-300 transition-colors">
+                <div class="kinetic-title font-display font-bold text-lg text-white mt-2.5 group-hover:text-gold-300 transition-colors">
                     Клас і фото завдання
                 </div>
                 <p class="text-xs text-slate-300 mt-1">Оберіть клас (наприклад, 7-А) та завантажте або сфотографуйте бланк</p>
@@ -314,7 +333,7 @@
                     <span class="text-[11px] font-bold uppercase tracking-widest text-sky-400">КРОК 02 • ЕТАЛОН</span>
                     <span class="w-8 h-8 rounded-full bg-white/10 border border-white/20 text-white font-bold flex items-center justify-center text-xs">2</span>
                 </div>
-                <div class="font-display font-bold text-lg text-white mt-2.5 group-hover:text-sky-300 transition-colors">
+                <div class="kinetic-title font-display font-bold text-lg text-white mt-2.5 group-hover:text-sky-300 transition-colors">
                     Перевірка та ключ ШІ
                 </div>
                 <p class="text-xs text-slate-400 mt-1">Звірте відповіді й бали (12-бальна система) та підтвердьте ключ</p>
@@ -326,7 +345,7 @@
                     <span class="text-[11px] font-bold uppercase tracking-widest text-purple-400">КРОК 03 • РЕЗУЛЬТАТИ</span>
                     <span class="w-8 h-8 rounded-full bg-white/10 border border-white/20 text-white font-bold flex items-center justify-center text-xs">3</span>
                 </div>
-                <div class="font-display font-bold text-lg text-white mt-2.5 group-hover:text-purple-300 transition-colors">
+                <div class="kinetic-title font-display font-bold text-lg text-white mt-2.5 group-hover:text-purple-300 transition-colors">
                     Роботи учнів і таблиця
                 </div>
                 <p class="text-xs text-slate-400 mt-1">Зніміть або завантажте фото робіт та отримайте готову таблицю оцінок</p>
@@ -374,7 +393,7 @@
                 <div class="liquid-glass p-6 flex flex-col justify-between space-y-6 lg:col-span-2">
                     <div>
                         <span class="text-xs font-bold text-gold-300 uppercase tracking-wider">Бланк із завданнями</span>
-                        <h2 class="font-display text-2xl font-extrabold text-white mt-1">
+                        <h2 class="kinetic-title font-display text-2xl font-extrabold text-white mt-1">
                             Завантажте або сфотографуйте завдання
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-300 mt-1">
@@ -384,7 +403,7 @@
 
                     <!-- Drop / Capture Zone -->
                     <div id="taskDropZone" class="rounded-2xl border border-dashed border-gold-300/45 bg-black/35 p-6 sm:p-8 text-center space-y-4">
-                        <input type="file" id="taskFileInput" accept="image/*" class="hidden" onchange="handleTaskFileSelect(event)">
+                        <input type="file" id="taskFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleTaskFileSelect(event)">
                         
                         <div class="flex flex-wrap justify-center gap-3.5">
                             <button onclick="document.getElementById('taskFileInput').click()" class="magnetic-target glass-btn-gold px-5 py-3 text-xs sm:text-sm flex items-center space-x-2">
@@ -397,7 +416,7 @@
                             </button>
                         </div>
                         <p class="text-[11px] text-slate-400 font-medium">
-                            Підтримує пряму камеру iOS Safari та Android Chrome, а також галерею або файли (JPG, PNG, WEBP)
+                            Задня камера iOS та Android для зйомки зошитів, а також галерея і файли (JPG, PNG, WEBP)
                         </p>
                     </div>
 
@@ -428,7 +447,7 @@
                         <span class="inline-block px-3 py-1 rounded-full bg-gold-400/20 border border-gold-300/40 text-gold-300 font-bold text-xs mb-1.5">
                             Крок 2 • Підтвердження ключа
                         </span>
-                        <h2 class="font-display text-2xl font-extrabold text-white">
+                        <h2 class="kinetic-title font-display text-2xl font-extrabold text-white">
                             Ключ і бали для класу <span id="displaySelectedClass" class="text-gold-300">7-А</span>
                         </h2>
                         <p class="text-xs text-slate-300 mt-1">
@@ -469,11 +488,11 @@
                         <span class="inline-block px-3 py-1 rounded-full bg-sky-400/20 border border-sky-300/40 text-sky-300 font-bold text-xs mb-1.5">
                             Крок 3 • Перевірка робіт учнів
                         </span>
-                        <h2 class="font-display text-2xl font-extrabold text-white">
+                        <h2 class="kinetic-title font-display text-2xl font-extrabold text-white">
                             Роботи класу <span id="currentBatchClass" class="text-gold-300">7-А</span>
                         </h2>
                         <p class="text-xs text-slate-300 mt-1">
-                            Можна завантажити кілька фото одразу або сфотографувати кожен зошит із камери телефона чи планшета.
+                            Можна завантажити кілька фото одразу або сфотографувати кожен зошит із задньої камери телефона чи планшета.
                         </p>
                     </div>
                     
@@ -487,7 +506,7 @@
                             <span>Зняти роботу камерою</span>
                         </button>
                     </div>
-                    <input type="file" id="studentsFileInput" accept="image/*" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
+                    <input type="file" id="studentsFileInput" accept="image/*" capture="environment" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
                 </div>
 
                 <!-- Selected Student Work Thumbnails -->
@@ -570,7 +589,7 @@
         <div class="flex justify-between items-center border-b border-white/15 pb-3">
             <span class="text-gold-300 font-bold text-sm uppercase tracking-wider flex items-center space-x-2">
                 <i class="ph-duotone ph-camera text-xl"></i>
-                <span>Камера пристрою • Зйомка сторінки</span>
+                <span>Задня камера • Зйомка сторінки</span>
             </span>
             <button onclick="closeLiveCamera()" class="magnetic-target text-slate-300 hover:text-gold-300 p-2 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Закрити камеру">
                 <i class="ph-bold ph-x text-2xl"></i>
@@ -578,7 +597,7 @@
         </div>
 
         <div class="relative flex-1 my-4 bg-black/70 rounded-2xl overflow-hidden flex items-center justify-center border border-white/20">
-            <video id="cameraStreamVideo" autoplay playsinline></video>
+            <video id="cameraStreamVideo" autoplay playsinline muted></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
         </div>
 
@@ -607,14 +626,14 @@
             </div>
 
             <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Вставте ваш ключ Gemini API (новий формат <code class="text-gold-300">AQ...</code> або старий <code class="text-gold-300">AIza...</code>). Він зберігається лише локально у <code class="text-gold-300">localStorage</code> цього браузера.
+                Вставте ваш ключ Gemini API (формат <code class="text-gold-300">AQ...</code> або <code class="text-gold-300">AIza...</code>). Він зберігається лише локально у <code class="text-gold-300">localStorage</code> цього браузера.
             </p>
 
             <div>
                 <label for="apiKeyInput" class="block text-xs font-bold text-gold-300 uppercase tracking-wider mb-2">
                     Ключ API (Gemini)
                 </label>
-                <input type="password" id="apiKeyInput" placeholder="AQ.Ab8..." class="glass-input w-full px-4 text-sm font-medium">
+                <input type="password" id="apiKeyInput" placeholder="AQ.Ab8... або AIza..." class="glass-input w-full px-4 text-sm font-medium">
             </div>
 
             <div class="text-xs">
@@ -639,7 +658,7 @@
         ГеоГраф Spatial AI • Liquid Glass &amp; Three.js • Локальне зберігання ключа без трекінгу
     </footer>
 
-    <!-- SPATIAL 3D (THREE.JS), SCROLL REFRACTION & MAGNETIC POINTER ENGINE -->
+    <!-- SPATIAL 3D (THREE.JS), KINETIC SCROLL TYPOGRAPHY, REFRACTION & MAGNETIC POINTER ENGINE -->
     <script>
         (function initSpatialLiquidEngine() {
             const canvas = document.getElementById('spatialCanvas');
@@ -653,7 +672,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-            // Three-point spatial lighting
             const ambientLight = new THREE.AmbientLight(0xc4b5fd, 0.75);
             scene.add(ambientLight);
 
@@ -665,7 +683,6 @@
             cyanLight.position.set(-4.5, -2.5, 4.5);
             scene.add(cyanLight);
 
-            // Procedural canvas texture
             function createProceduralTexture(mode = 0) {
                 const texCanvas = document.createElement('canvas');
                 texCanvas.width = 256;
@@ -757,6 +774,7 @@
             let scrollProgress = 0;
             let lastScrollY = window.scrollY;
             let scrollVelocity = 0;
+            let scrollDirection = 1;
             let pointerX = 0;
             let pointerY = 0;
 
@@ -764,14 +782,12 @@
                 const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
                 scrollProgress = Math.min(1, Math.max(0, window.scrollY / docHeight));
                 const currentY = window.scrollY;
-                scrollVelocity = Math.min(1, Math.abs(currentY - lastScrollY) / 45);
+                const deltaY = currentY - lastScrollY;
+                if (Math.abs(deltaY) > 0.5) {
+                    scrollDirection = deltaY > 0 ? 1 : -1;
+                }
+                scrollVelocity = Math.min(1, Math.abs(deltaY) / 40);
                 lastScrollY = currentY;
-
-                const shiftPx = (scrollVelocity * 10).toFixed(1) + 'px';
-                const glowAlpha = (0.18 + scrollVelocity * 0.35).toFixed(2);
-                document.documentElement.style.setProperty('--refract-shift', shiftPx);
-                document.documentElement.style.setProperty('--refract-glow', glowAlpha);
-                document.documentElement.style.setProperty('--scroll-energy', scrollVelocity.toFixed(2));
             }, { passive: true });
 
             window.addEventListener('pointermove', (e) => {
@@ -804,7 +820,21 @@
             function animate() {
                 requestAnimationFrame(animate);
                 const t = clock.getElapsedTime();
-                scrollVelocity *= 0.9;
+                scrollVelocity *= 0.88;
+
+                // Kinetic Typography & Liquid Refraction CSS variables update
+                const wght = Math.round(700 + scrollVelocity * 200);
+                const skewDeg = (scrollVelocity * scrollDirection * -3.5).toFixed(2) + 'deg';
+                const trackEm = (-0.02 + scrollVelocity * 0.025).toFixed(3) + 'em';
+                const shiftPx = (scrollVelocity * 10).toFixed(1) + 'px';
+                const glowAlpha = (0.18 + scrollVelocity * 0.35).toFixed(2);
+
+                document.documentElement.style.setProperty('--kinetic-wght', String(wght));
+                document.documentElement.style.setProperty('--kinetic-skew', skewDeg);
+                document.documentElement.style.setProperty('--kinetic-track', trackEm);
+                document.documentElement.style.setProperty('--refract-shift', shiftPx);
+                document.documentElement.style.setProperty('--refract-glow', glowAlpha);
+                document.documentElement.style.setProperty('--scroll-energy', scrollVelocity.toFixed(2));
 
                 const explode = scrollProgress * 1.15 + scrollVelocity * 0.22;
                 coreMesh.position.set(0, explode * 0.35, 0);
@@ -836,7 +866,6 @@
 
     <!-- MAIN APPLICATION LOGIC (ES Module) -->
     <script type="module">
-        // --- Application State ---
         let state = {
             apiKey: localStorage.getItem('gemini_api_key') || '',
             selectedClass: '7-А',
@@ -851,22 +880,18 @@
             genAI: null
         };
 
-        // ESM Import for Gemini SDK
         let GoogleGenAI = null;
         try {
             const module = await import('@google/genai');
             GoogleGenAI = module.GoogleGenAI;
-            console.log("✅ Gemini SDK успішно завантажено.");
         } catch (e) {
-            console.error("❌ Помилка завантаження Gemini SDK:", e);
-            // Show alert later when DOM is ready
+            console.error("Помилка завантаження Gemini SDK:", e);
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => {
             updateApiKeyBadge();
             syncStepperVisuals();
-            
-            // Expose functions to global scope for inline onclick handlers
+
             window.openApiKeyModal = openApiKeyModal;
             window.closeApiKeyModal = closeApiKeyModal;
             window.saveApiKey = saveApiKey;
@@ -890,7 +915,7 @@
             window.closeAlert = closeAlert;
 
             if (!GoogleGenAI) {
-                showAlert('Помилка завантаження модулів ШІ. Перевірте інтернет-з\'єднання та оновіть сторінку.', 'warning');
+                showAlert('Помилка завантаження модулів ШІ. Перевірте інтернет-з'єднання та оновіть сторінку.', 'warning');
                 return;
             }
 
@@ -928,19 +953,19 @@
 
         function saveApiKey() {
             const val = document.getElementById('apiKeyInput').value.trim();
-            if (!val || (!val.startsWith('AQ.') && !val.startsWith('AIza') && !val.startsWith('gd_'))) {
-                showAlert('Будь ласка, введіть коректний Gemini API ключ (він має починатися з AQ., AIza або gd_).', 'warning');
+            if (!val) {
+                showAlert('Будь ласка, введіть ваш ключ Gemini API.', 'warning');
                 return;
             }
             state.apiKey = val;
             localStorage.setItem('gemini_api_key', val);
             updateApiKeyBadge();
-            
+
             if (initGenAI()) {
                 showAlert('API ключ збережено та SDK ініціалізовано.', 'success');
                 closeApiKeyModal();
             } else {
-                showAlert('Ключ збережено, але не вдалося ініціалізувати SDK. Перевірте консоль.', 'warning');
+                showAlert('Ключ збережено, але не вдалося ініціалізувати SDK.', 'warning');
             }
         }
 
@@ -1001,13 +1026,32 @@
             const modal = document.getElementById('cameraModal');
             const video = document.getElementById('cameraStreamVideo');
 
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const fallbackInputId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
+                document.getElementById(fallbackInputId)?.click();
+                return;
+            }
+
             try {
-                const constraints = { video: { facingMode: { ideal: "environment" } } };
-                state.cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { exact: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                        audio: false
+                    });
+                } catch (_exactErr) {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' } },
+                        audio: false
+                    });
+                }
+                state.cameraStream = stream;
                 video.srcObject = state.cameraStream;
                 modal.classList.remove('hidden');
             } catch (err) {
-                showAlert('Не вдалося запустити камеру браузера. Використайте кнопку «Обрати фото з пристрою».', 'warning');
+                const fallbackInputId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
+                showAlert('Камера в браузері недоступна — відкриваємо системну камеру пристрою.', 'info');
+                document.getElementById(fallbackInputId)?.click();
             }
         }
 
@@ -1028,7 +1072,7 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
             const base64Data = dataUrl.split(',')[1];
             closeLiveCamera();
 
@@ -1050,21 +1094,49 @@
             }
         }
 
+        function compressImageDataUrl(dataUrl, maxDim = 1600, quality = 0.82) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    let { width, height } = img;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    const c = document.createElement('canvas');
+                    c.width = width;
+                    c.height = height;
+                    const ctx = c.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const outUrl = c.toDataURL('image/jpeg', quality);
+                    resolve({ dataUrl: outUrl, base64: outUrl.split(',')[1], mimeType: 'image/jpeg' });
+                };
+                img.onerror = () => resolve({ dataUrl, base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+                img.src = dataUrl;
+            });
+        }
+
         function handleTaskFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                const result = evt.target.result;
-                state.taskImageBase64 = result.split(',')[1];
-                state.taskImageType = file.type || 'image/jpeg';
+            reader.onload = async function(evt) {
+                const compressed = await compressImageDataUrl(evt.target.result);
+                state.taskImageBase64 = compressed.base64;
+                state.taskImageType = compressed.mimeType;
 
-                document.getElementById('taskPreviewImg').src = result;
+                document.getElementById('taskPreviewImg').src = compressed.dataUrl;
                 document.getElementById('taskDropZone').classList.add('hidden');
                 document.getElementById('taskPreviewContainer').classList.remove('hidden');
             };
             reader.readAsDataURL(file);
+            e.target.value = '';
         }
 
         function removeTaskImage() {
@@ -1116,9 +1188,7 @@
                     config: { responseMimeType: "application/json" }
                 });
 
-                const rawText = response.text;
-                const parsed = JSON.parse(rawText);
-
+                const parsed = JSON.parse(response.text);
                 state.keyQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
                 renderKeyQuestions();
                 setStep(2);
@@ -1202,12 +1272,13 @@
             const files = Array.from(e.target.files || []);
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
+                reader.onload = async function(evt) {
+                    const compressed = await compressImageDataUrl(evt.target.result);
                     state.studentFiles.push({
                         name: file.name,
-                        base64: evt.target.result.split(',')[1],
-                        mimeType: file.type || 'image/jpeg',
-                        previewUrl: evt.target.result
+                        base64: compressed.base64,
+                        mimeType: compressed.mimeType,
+                        previewUrl: compressed.dataUrl
                     });
                     renderStudentFilesList();
                 };
@@ -1279,8 +1350,7 @@ ${keyPromptStr}
                         config: { responseMimeType: "application/json" }
                     });
 
-                    const rawText = response.text;
-                    const parsed = JSON.parse(rawText);
+                    const parsed = JSON.parse(response.text);
                     const boundedScore = Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1)));
 
                     results.push({
@@ -1296,7 +1366,7 @@ ${keyPromptStr}
                         studentName: file.name,
                         totalScore: 0,
                         mistakes: 'Помилка аналізу зображення: ' + err.message,
-                        feedback: 'Роботу потребує ручної перевірки вчителем.',
+                        feedback: 'Робота потребує ручної перевірки вчителем.',
                         teacherAdvice: 'Перевірити фото вручну.'
                     });
                 }
@@ -1336,34 +1406,48 @@ ${keyPromptStr}
             });
 
             document.getElementById('classMistakesSummaryText').textContent =
-                summaryLines.length > 0 ? summaryLines.join('\n') : 'Системних помилок не виявлено.';
+                summaryLines.length > 0 ? summaryLines.join('
+') : 'Системних помилок не виявлено.';
             document.getElementById('resultsCount').textContent = String(state.gradingResults.length);
         }
 
         function copyTableForExcel() {
             if (!state.gradingResults || state.gradingResults.length === 0) return;
-            let tsv = "Клас\tПрізвище та ім'я\tОцінка (з 12)\tРозбір помилок\tФідбек учню\tПорада вчителю\n";
+            let tsv = "Клас	Прізвище та ім'я	Оцінка (з 12)	Розбір помилок	Фідбек учню	Порада вчителю
+";
             state.gradingResults.forEach(r => {
-                tsv += `${state.selectedClass}\t${r.studentName}\t${r.totalScore}\t${r.mistakes}\t${r.feedback}\t${r.teacherAdvice}\n`;
+                tsv += `${state.selectedClass}	${r.studentName}	${r.totalScore}	${r.mistakes}	${r.feedback}	${r.teacherAdvice}
+`;
             });
 
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(tsv).then(() => {
+                    showAlert('Таблицю скопійовано! Можна вставити в Google Таблиці або Excel.', 'success');
+                }).catch(() => fallbackCopy(tsv));
+            } else {
+                fallbackCopy(tsv);
+            }
+        }
+
+        function fallbackCopy(tsv) {
             const textarea = document.createElement('textarea');
             textarea.value = tsv;
             document.body.appendChild(textarea);
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-
             showAlert('Таблицю скопійовано! Можна вставити в Google Таблиці або Excel.', 'success');
         }
 
         function exportCSV() {
             if (!state.gradingResults || state.gradingResults.length === 0) return;
-            let csv = "\uFEFFКлас,Прізвище та ім'я,Оцінка (з 12),Розбір помилок,Фідбек учню,Порада вчителю\n";
+            let csv = "﻿Клас,Прізвище та ім'я,Оцінка (з 12),Розбір помилок,Фідбек учню,Порада вчителю
+";
             state.gradingResults.forEach(r => {
                 const cols = [state.selectedClass, r.studentName, r.totalScore, r.mistakes, r.feedback, r.teacherAdvice]
                     .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`);
-                csv += cols.join(',') + '\n';
+                csv += cols.join(',') + '
+';
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
