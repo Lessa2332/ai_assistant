@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ГеоГраф • Liquid Glass &amp; Spatial 3D Assistant</title>
+    <title>ГеоГраф • Перевірка робіт AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
-    <!-- Tailwind CSS -->
+    
+    <!-- CSS & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Three.js Spatial 3D Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Inter & Space Grotesk Variable Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=Space+Grotesk:wght@500..700&display=swap" rel="stylesheet">
@@ -24,55 +22,25 @@
         }
     }
     </script>
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        gold: { 300: '#FFE885', 400: '#FFD43B', 500: '#F5B800', 600: '#C99200' },
-                        spatial: { cyan: '#38BDF8', violet: '#A855F7', obsidian: '#06070B' }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'Space Grotesk', 'sans-serif'],
-                        display: ['Space Grotesk', 'Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+
     <style>
         :root {
             --refract-shift: 0px;
             --refract-glow: 0.22;
-            --scroll-energy: 0;
             --kinetic-wght: 800;
-            --kinetic-skew: 0deg;
-            --kinetic-track: -0.02em;
         }
-
         html { scroll-behavior: smooth; }
-
         body {
             background-color: #06070B;
             color: #F8FAFC;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
             padding-bottom: env(safe-area-inset-bottom);
-            position: relative;
         }
-
         .kinetic-title {
             font-variation-settings: "wght" var(--kinetic-wght);
-            letter-spacing: var(--kinetic-track);
-            transform: skewX(var(--kinetic-skew));
-            display: inline-block;
-            transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), letter-spacing 0.14s ease;
-            will-change: transform, font-variation-settings, letter-spacing;
+            transition: font-variation-settings 0.15s ease;
         }
-
-        /* Spatial WebGL 3D Canvas Layer */
         #spatialCanvas {
             position: fixed;
             inset: 0;
@@ -80,533 +48,340 @@
             height: 100vh;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.88;
+            opacity: 0.85;
         }
-
-        /* Luminous Golden & Cyan-Violet Ambient Caustics */
         .ambient-caustics {
             position: fixed;
             inset: 0;
             z-index: 1;
             pointer-events: none;
             background:
-                radial-gradient(circle at 14% 18%, rgba(255, 212, 59, 0.14), transparent 42%),
-                radial-gradient(circle at 86% 22%, rgba(56, 189, 248, 0.13), transparent 44%),
-                radial-gradient(circle at 52% 84%, rgba(168, 85, 247, 0.12), transparent 48%);
+                radial-gradient(circle at 14% 18%, rgba(255, 212, 59, 0.15), transparent 42%),
+                radial-gradient(circle at 86% 22%, rgba(56, 189, 248, 0.13), transparent 44%);
             filter: blur(12px);
-            transition: opacity 0.25s ease;
         }
-
         .content-layer { position: relative; z-index: 2; }
-
-        /* Liquid Glass Surface with Edge Refraction & Specular Rim */
         .liquid-glass {
-            position: relative;
-            background: linear-gradient(145deg, rgba(22, 26, 38, 0.68) 0%, rgba(11, 13, 20, 0.56) 55%, rgba(24, 20, 36, 0.64) 100%);
-            backdrop-filter: blur(22px) saturate(155%);
-            -webkit-backdrop-filter: blur(22px) saturate(155%);
+            background: linear-gradient(145deg, rgba(22, 26, 38, 0.72) 0%, rgba(11, 13, 20, 0.6) 100%);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
             border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 22px;
-            box-shadow:
-                0 20px 50px -15px rgba(0, 0, 0, 0.75),
-                inset 0 1px 1px rgba(255, 255, 255, 0.28),
-                inset 0 -1px 1px rgba(255, 212, 59, 0.14),
-                calc(var(--refract-shift) * -1) 0 24px rgba(56, 189, 248, var(--refract-glow)),
-                var(--refract-shift) 0 24px rgba(255, 212, 59, var(--refract-glow));
-            transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s ease, box-shadow 0.22s ease;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.75);
         }
-
-        .liquid-glass::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(120deg, rgba(255, 212, 59, calc(0.35 + var(--scroll-energy) * 0.45)), rgba(56, 189, 248, 0.24), rgba(168, 85, 247, 0.24), rgba(255, 255, 255, 0.22));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-        }
-
-        .liquid-glass-subtle {
-            background: rgba(14, 17, 27, 0.54);
-            backdrop-filter: blur(16px) saturate(140%);
-            -webkit-backdrop-filter: blur(16px) saturate(140%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
-            box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-        }
-
         .liquid-glass-gold {
-            background: linear-gradient(135deg, rgba(255, 212, 59, 0.26) 0%, rgba(245, 184, 0, 0.14) 55%, rgba(168, 85, 247, 0.14) 100%);
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            background: linear-gradient(135deg, rgba(255, 212, 59, 0.24) 0%, rgba(168, 85, 247, 0.12) 100%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 212, 59, 0.45);
             border-radius: 20px;
-            box-shadow: 0 14px 36px -10px rgba(255, 212, 59, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.35);
         }
-
-        /* Luminous Glass Buttons with Specular Sheen & Magnetic Support */
         .glass-btn-gold {
-            position: relative;
-            overflow: hidden;
             background: linear-gradient(135deg, #FFE885 0%, #FFD43B 50%, #E5A900 100%);
             color: #090A0F;
             font-weight: 800;
-            border: 1px solid rgba(255, 255, 255, 0.55);
-            border-radius: 14px;
+            border-radius: 12px;
             min-height: 48px;
-            box-shadow: 0 10px 26px -6px rgba(255, 212, 59, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.8);
-            transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, filter 0.2s ease;
-            touch-action: manipulation;
-            will-change: transform;
+            box-shadow: 0 8px 22px -6px rgba(255, 212, 59, 0.45);
+            transition: transform 0.15s ease, filter 0.15s ease;
         }
-
-        .glass-btn-gold::after {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -65%;
-            width: 45%;
-            height: 200%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-            transform: rotate(22deg);
-            transition: left 0.55s ease;
-            pointer-events: none;
-        }
-
-        .glass-btn-gold:hover:not(:disabled)::after { left: 125%; }
-
-        .glass-btn-gold:hover:not(:disabled) {
-            filter: brightness(1.06);
-            box-shadow: 0 14px 32px -6px rgba(255, 212, 59, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-        }
-
+        .glass-btn-gold:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
         .glass-btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
-
         .glass-btn-lens {
-            background: rgba(20, 24, 36, 0.72);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(20, 24, 36, 0.75);
+            backdrop-filter: blur(14px);
             color: #F8FAFC;
             font-weight: 700;
             border: 1px solid rgba(255, 212, 59, 0.36);
-            border-radius: 14px;
+            border-radius: 12px;
             min-height: 48px;
-            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background 0.2s ease;
-            touch-action: manipulation;
-            will-change: transform;
         }
-
-        .glass-btn-lens:hover:not(:disabled) {
-            border-color: rgba(255, 212, 59, 0.75);
-            background: rgba(30, 36, 54, 0.85);
-        }
-
         .glass-input {
-            background: rgba(8, 10, 16, 0.66);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(8, 10, 16, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             color: #F8FAFC;
             border-radius: 12px;
             min-height: 46px;
             outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
-
         .glass-input:focus {
             border-color: #FFD43B;
-            background: rgba(12, 15, 24, 0.86);
-            box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.18);
+            box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.2);
         }
-
-        .magnetic-target {
-            transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-            will-change: transform;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-            .kinetic-title { transform: none !important; }
-        }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #06070B; }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFD43B, #38BDF8); border-radius: 999px; }
-
-        #cameraStreamVideo { object-fit: cover; width: 100%; height: 100%; border-radius: 14px; }
-
         @media print {
             .no-print, #spatialCanvas, .ambient-caustics { display: none !important; }
-            body { background: #FFFFFF !important; color: #000000 !important; }
-            .liquid-glass, .liquid-glass-subtle, .liquid-glass-gold, table {
-                background: #FFFFFF !important; backdrop-filter: none !important;
-                border: 1px solid #000000 !important; box-shadow: none !important; color: #000000 !important;
-            }
-            th, td { border: 1px solid #000000 !important; color: #000000 !important; }
+            body { background: #FFF !important; color: #000 !important; }
+            .liquid-glass, table { background: #FFF !important; color: #000 !important; border: 1px solid #000 !important; }
+            th, td { border: 1px solid #000 !important; color: #000 !important; }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-gold-400 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-black">
 
-    <!-- Interactive Spatial 3D Background Canvas (Three.js) -->
     <canvas id="spatialCanvas" aria-hidden="true"></canvas>
     <div class="ambient-caustics" aria-hidden="true"></div>
 
-    <!-- Top Spatial Status Strip -->
-    <div class="content-layer border-b border-white/10 bg-black/45 backdrop-blur-md py-2 px-4 text-[11px] font-semibold tracking-wider uppercase text-slate-300 no-print">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center space-x-2 text-gold-300">
-                <i class="ph-fill ph-sparkle text-sm"></i>
-                <span>LIQUID GLASS &amp; SPATIAL 3D • КАБІНЕТ ГЕОГРАФІЇ</span>
-            </div>
-            <div class="hidden sm:flex items-center space-x-4 text-slate-400">
-                <span class="flex items-center space-x-1"><i class="ph ph-cube text-sky-400"></i><span>3D Scrollytelling</span></span>
-                <span class="flex items-center space-x-1"><i class="ph ph-camera text-purple-400"></i><span>Задня камера iOS / Android</span></span>
-                <span class="flex items-center space-x-1"><i class="ph ph-shield-check text-gold-400"></i><span>Локальний Ключ</span></span>
-            </div>
-        </div>
-    </div>
-
     <!-- Header Navigation -->
-    <header class="content-layer sticky top-0 z-30 border-b border-white/15 bg-[#06070B]/65 backdrop-blur-xl no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
-            <div class="flex items-center space-x-3.5">
-                <div class="magnetic-target w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-300/30 via-sky-400/20 to-purple-500/25 border border-gold-300/50 flex items-center justify-center shadow-[0_0_25px_rgba(255,212,59,0.22)]">
-                    <i class="ph-duotone ph-globe-hemisphere-west text-3xl text-gold-300"></i>
+    <header class="content-layer sticky top-0 z-30 border-b border-white/15 bg-[#06070B]/70 backdrop-blur-xl no-print">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300/30 to-purple-500/25 border border-amber-300/50 flex items-center justify-center">
+                    <i class="ph-duotone ph-globe-hemisphere-west text-3xl text-amber-300"></i>
                 </div>
                 <div>
-                    <h1 id="mainTitle" class="kinetic-title font-display text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
-                        ГеоГраф <span class="bg-gradient-to-r from-gold-300 via-gold-400 to-amber-300 bg-clip-text text-transparent">Spatial AI</span>
+                    <h1 class="kinetic-title font-display text-xl sm:text-2xl font-extrabold text-white">
+                        ГеоГраф <span class="text-amber-300">Spatial AI</span>
                     </h1>
-                    <p class="text-[11px] sm:text-xs font-medium text-slate-400">
-                        Інтелектуальна перевірка письмових робіт • 12-бальна шкала
-                    </p>
+                    <p class="text-xs text-slate-400">Автоматизована перевірка робіт</p>
                 </div>
             </div>
 
-            <!-- API Key Status / Modal Trigger -->
-            <button onclick="openApiKeyModal()" id="apiKeyBadge" class="magnetic-target glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-2">
-                <i class="ph-duotone ph-key text-lg text-gold-400"></i>
+            <button onclick="openApiKeyModal()" id="apiKeyBadge" class="glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-2">
+                <i class="ph-duotone ph-key text-lg text-amber-400"></i>
                 <span id="apiKeyBadgeText">GEMINI API KEY</span>
             </button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="content-layer max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full flex-grow space-y-6">
+    <main class="content-layer max-w-7xl mx-auto px-4 py-6 w-full flex-grow space-y-6">
 
-        <!-- Global Alert Message Box -->
-        <div id="alertBox" class="hidden p-4 liquid-glass flex items-start space-x-3" role="alert">
-            <i id="alertIcon" class="ph-duotone ph-info text-2xl shrink-0 text-gold-400 mt-0.5"></i>
-            <div class="flex-1 font-medium text-xs sm:text-sm leading-relaxed text-slate-100" id="alertText"></div>
-            <button onclick="closeAlert()" class="magnetic-target text-slate-400 hover:text-gold-300 p-1.5 rounded-lg" aria-label="Закрити сповіщення">
-                <i class="ph-bold ph-x text-lg"></i>
-            </button>
+        <!-- Global Alert Box -->
+        <div id="alertBox" class="hidden p-4 liquid-glass flex items-start space-x-3">
+            <i id="alertIcon" class="ph-duotone ph-info text-2xl text-amber-400"></i>
+            <div class="flex-1 text-xs sm:text-sm text-slate-100" id="alertText"></div>
+            <button onclick="closeAlert()" class="text-slate-400 hover:text-white p-1"><i class="ph-bold ph-x text-lg"></i></button>
         </div>
 
-        <!-- LIQUID GLASS WORKFLOW STEPPER -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
-            <!-- Step 1 Card -->
-            <div onclick="setStep(1)" id="stepTile1" class="liquid-glass-gold p-5 cursor-pointer group">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-widest text-gold-300">КРОК 01 • ПІДГОТОВКА</span>
-                    <span class="w-8 h-8 rounded-full bg-gold-400 text-black font-extrabold flex items-center justify-center text-xs shadow-[0_0_15px_rgba(255,212,59,0.5)]">1</span>
-                </div>
-                <div class="kinetic-title font-display font-bold text-lg text-white mt-2.5 group-hover:text-gold-300 transition-colors">
-                    Клас і фото завдання
-                </div>
-                <p class="text-xs text-slate-300 mt-1">Оберіть клас (наприклад, 7-А) та завантажте або сфотографуйте бланк</p>
+        <!-- AUTH OVERLAY / GATE (If key is missing) -->
+        <section id="authGateSection" class="liquid-glass p-8 max-w-xl mx-auto text-center space-y-6 my-8">
+            <div class="w-16 h-16 rounded-3xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center mx-auto text-amber-300">
+                <i class="ph-duotone ph-lock-key text-3xl"></i>
             </div>
-
-            <!-- Step 2 Card -->
-            <div onclick="setStep(2)" id="stepTile2" class="liquid-glass-subtle opacity-75 p-5 cursor-pointer group hover:opacity-100 transition-opacity">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-widest text-sky-400">КРОК 02 • ЕТАЛОН</span>
-                    <span class="w-8 h-8 rounded-full bg-white/10 border border-white/20 text-white font-bold flex items-center justify-center text-xs">2</span>
-                </div>
-                <div class="kinetic-title font-display font-bold text-lg text-white mt-2.5 group-hover:text-sky-300 transition-colors">
-                    Перевірка та ключ ШІ
-                </div>
-                <p class="text-xs text-slate-400 mt-1">Звірте відповіді й бали (12-бальна система) та підтвердьте ключ</p>
+            <div>
+                <h2 class="text-2xl font-bold text-white">Введіть Gemini API Key</h2>
+                <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                    Для початку роботи введіть ваш ключ API від Google (підтримуються формати <code class="text-amber-300">AQ...</code> та <code class="text-amber-300">AIza...</code>).
+                    Ключ зберігається у вашому браузері.
+                </p>
             </div>
-
-            <!-- Step 3 Card -->
-            <div onclick="setStep(3)" id="stepTile3" class="liquid-glass-subtle opacity-75 p-5 cursor-pointer group hover:opacity-100 transition-opacity">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-widest text-purple-400">КРОК 03 • РЕЗУЛЬТАТИ</span>
-                    <span class="w-8 h-8 rounded-full bg-white/10 border border-white/20 text-white font-bold flex items-center justify-center text-xs">3</span>
-                </div>
-                <div class="kinetic-title font-display font-bold text-lg text-white mt-2.5 group-hover:text-purple-300 transition-colors">
-                    Роботи учнів і таблиця
-                </div>
-                <p class="text-xs text-slate-400 mt-1">Зніміть або завантажте фото робіт та отримайте готову таблицю оцінок</p>
-            </div>
-        </div>
-
-        <!-- STEP 1: Class Selection & Task Photo Capture -->
-        <section id="step1Container" class="space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Class & Context Glass Card -->
-                <div class="liquid-glass p-6 flex flex-col justify-between space-y-6 lg:col-span-1">
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-2.5 text-gold-300 font-bold text-xs uppercase tracking-wider">
-                            <i class="ph-duotone ph-graduation-cap text-xl"></i>
-                            <span>Клас виконання робіт</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            Вкажіть клас на початку — усі перевірені роботи автоматично отримають позначку цього класу в підсумковій таблиці.
-                        </p>
-                        <select id="classSelect" onchange="handleClassChange(this.value)" class="glass-input w-full px-4 text-base font-bold">
-                            <option value="5-А">5-А клас</option>
-                            <option value="5-Б">5-Б клас</option>
-                            <option value="6-А">6-А клас</option>
-                            <option value="6-Б">6-Б клас</option>
-                            <option value="7-А" selected>7-А клас</option>
-                            <option value="7-Б">7-Б клас</option>
-                            <option value="8-А">8-А клас</option>
-                            <option value="8-Б">8-Б клас</option>
-                            <option value="9-А">9-А клас</option>
-                            <option value="custom">+ Ввести інший клас...</option>
-                        </select>
-                        <input type="text" id="customClassInput" placeholder="Наприклад: 7-В або 10-А" class="hidden glass-input w-full px-4 text-base font-bold">
-                    </div>
-
-                    <div class="space-y-2.5 pt-4 border-t border-white/10">
-                        <label for="taskContextInput" class="block text-xs font-bold text-sky-300 uppercase tracking-wider">
-                            Тема / примітка (необов'язково)
-                        </label>
-                        <input type="text" id="taskContextInput" placeholder="Напр.: Діагностувальна робота №1 «Вступ»" class="glass-input w-full px-3.5 text-xs font-medium">
-                    </div>
-                </div>
-
-                <!-- Task Photo Upload & Live Camera Glass Card -->
-                <div class="liquid-glass p-6 flex flex-col justify-between space-y-6 lg:col-span-2">
-                    <div>
-                        <span class="text-xs font-bold text-gold-300 uppercase tracking-wider">Бланк із завданнями</span>
-                        <h2 class="kinetic-title font-display text-2xl font-extrabold text-white mt-1">
-                            Завантажте або сфотографуйте завдання
-                        </h2>
-                        <p class="text-xs sm:text-sm text-slate-300 mt-1">
-                            Gemini AI розпізнає запитання, сформує ключ відповідей та розподілить бали за 12-бальною шкалою для вашого підтвердження.
-                        </p>
-                    </div>
-
-                    <!-- Drop / Capture Zone -->
-                    <div id="taskDropZone" class="rounded-2xl border border-dashed border-gold-300/45 bg-black/35 p-6 sm:p-8 text-center space-y-4">
-                        <input type="file" id="taskFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleTaskFileSelect(event)">
-                        
-                        <div class="flex flex-wrap justify-center gap-3.5">
-                            <button onclick="document.getElementById('taskFileInput').click()" class="magnetic-target glass-btn-gold px-5 py-3 text-xs sm:text-sm flex items-center space-x-2">
-                                <i class="ph-bold ph-upload-simple text-lg"></i>
-                                <span>Обрати фото з пристрою</span>
-                            </button>
-                            <button onclick="openLiveCamera('task')" class="magnetic-target glass-btn-lens px-5 py-3 text-xs sm:text-sm flex items-center space-x-2">
-                                <i class="ph-duotone ph-camera text-lg text-gold-300"></i>
-                                <span>Зробити фото камерою</span>
-                            </button>
-                        </div>
-                        <p class="text-[11px] text-slate-400 font-medium">
-                            Задня камера iOS та Android для зйомки зошитів, а також галерея і файли (JPG, PNG, WEBP)
-                        </p>
-                    </div>
-
-                    <!-- Task Preview Area -->
-                    <div id="taskPreviewContainer" class="hidden space-y-4">
-                        <div class="relative rounded-2xl border border-white/20 bg-black/50 max-h-72 flex justify-center items-center overflow-hidden p-2">
-                            <img id="taskPreviewImg" src="" alt="Прев'ю завдання" class="max-h-64 object-contain rounded-xl">
-                            <button onclick="removeTaskImage()" class="magnetic-target absolute top-3 right-3 bg-rose-600/90 hover:bg-rose-500 text-white font-bold px-3.5 py-2 text-xs rounded-xl border border-white/25 shadow-lg min-h-[44px]">
-                                Видалити фото
-                            </button>
-                        </div>
-
-                        <button onclick="generateKeyFromTask()" id="btnGenerateKey" class="magnetic-target glass-btn-gold w-full py-4 text-xs sm:text-sm flex items-center justify-center space-x-2.5">
-                            <i class="ph-bold ph-sparkle text-xl"></i>
-                            <span>Виявити завдання та сформувати ключ оцінювання</span>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- STEP 2: Review, Edit & Confirm Key -->
-        <section id="step2Container" class="hidden space-y-6">
-            <div class="liquid-glass p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/15 gap-4">
-                    <div>
-                        <span class="inline-block px-3 py-1 rounded-full bg-gold-400/20 border border-gold-300/40 text-gold-300 font-bold text-xs mb-1.5">
-                            Крок 2 • Підтвердження ключа
-                        </span>
-                        <h2 class="kinetic-title font-display text-2xl font-extrabold text-white">
-                            Ключ і бали для класу <span id="displaySelectedClass" class="text-gold-300">7-А</span>
-                        </h2>
-                        <p class="text-xs text-slate-300 mt-1">
-                            Перевірте правильні відповіді, за потреби відредагуйте формулювання чи бали та натисніть «Підтвердити ключ».
-                        </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2.5">
-                        <button onclick="addNewQuestionToKey()" class="magnetic-target glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-1.5">
-                            <i class="ph-bold ph-plus text-gold-300"></i>
-                            <span>Додати питання</span>
-                        </button>
-                        <button onclick="confirmKeyAndProceed()" class="magnetic-target glass-btn-gold px-5 py-2.5 text-xs flex items-center space-x-1.5">
-                            <i class="ph-bold ph-check-circle text-base"></i>
-                            <span>Підтвердити ключ ➔</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Dynamic Key Items -->
-                <div id="keyQuestionsList" class="space-y-3.5"></div>
-
-                <div class="p-4 liquid-glass-subtle flex items-center justify-between">
-                    <span class="font-bold text-slate-300 text-xs sm:text-sm uppercase tracking-wider">
-                        Сума балів за ключем (орієнтир — 12 балів):
-                    </span>
-                    <span id="totalKeyPoints" class="font-display font-extrabold text-gold-300 text-2xl">0 б.</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- STEP 3: Student Work Photos & Results Table -->
-        <section id="step3Container" class="hidden space-y-6">
-            
-            <!-- Batch Capture & Upload Card -->
-            <div class="liquid-glass p-6 space-y-6 no-print">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/15 pb-4">
-                    <div>
-                        <span class="inline-block px-3 py-1 rounded-full bg-sky-400/20 border border-sky-300/40 text-sky-300 font-bold text-xs mb-1.5">
-                            Крок 3 • Перевірка робіт учнів
-                        </span>
-                        <h2 class="kinetic-title font-display text-2xl font-extrabold text-white">
-                            Роботи класу <span id="currentBatchClass" class="text-gold-300">7-А</span>
-                        </h2>
-                        <p class="text-xs text-slate-300 mt-1">
-                            Можна завантажити кілька фото одразу або сфотографувати кожен зошит із задньої камери телефона чи планшета.
-                        </p>
-                    </div>
-                    
-                    <div class="flex flex-wrap gap-3">
-                        <button onclick="document.getElementById('studentsFileInput').click()" class="magnetic-target glass-btn-gold px-4 py-2.5 text-xs flex items-center space-x-2">
-                            <i class="ph-bold ph-images text-base"></i>
-                            <span>Обрати фото робіт</span>
-                        </button>
-                        <button onclick="openLiveCamera('student')" class="magnetic-target glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-2">
-                            <i class="ph-duotone ph-camera text-base text-gold-300"></i>
-                            <span>Зняти роботу камерою</span>
-                        </button>
-                    </div>
-                    <input type="file" id="studentsFileInput" accept="image/*" capture="environment" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
-                </div>
-
-                <!-- Selected Student Work Thumbnails -->
-                <div id="studentFilesList" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3.5"></div>
-
-                <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="magnetic-target glass-btn-gold w-full py-4 text-xs sm:text-sm flex items-center justify-center space-x-2.5">
-                    <i class="ph-bold ph-lightning text-xl"></i>
-                    <span>Перевірити роботи та сформувати таблицю оцінок</span>
+            <div class="space-y-3">
+                <input type="password" id="gateApiKeyInput" placeholder="Вставити ключ AQ... або AIza..." class="glass-input w-full px-4 text-sm font-mono text-center">
+                <button onclick="submitGateKey()" class="glass-btn-gold w-full py-3.5 text-sm flex items-center justify-center space-x-2">
+                    <i class="ph-bold ph-check text-lg"></i>
+                    <span>Розпочати роботу</span>
                 </button>
             </div>
-
-            <!-- Grading Loader -->
-            <div id="gradingLoader" class="hidden liquid-glass p-10 text-center space-y-4 no-print">
-                <div class="w-12 h-12 border-4 border-white/15 border-t-gold-400 rounded-full animate-spin mx-auto"></div>
-                <div class="font-display text-lg sm:text-xl font-bold text-gold-300">
-                    Gemini AI аналізує роботи учнів та заповнює таблицю...
-                </div>
-                <p class="text-xs text-slate-400">Розпізнаємо прізвище та ім'я, звіряємо відповіді з ключем і готуємо рекомендації</p>
-            </div>
-
-            <!-- Results & Analytics Glass Grid -->
-            <div id="resultsContainer" class="hidden space-y-6">
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div class="liquid-glass p-5 md:col-span-2 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2 text-gold-300 font-bold text-xs uppercase tracking-wider">
-                                <i class="ph-duotone ph-chalkboard-teacher text-xl"></i>
-                                <span>Поради вчителю на наступний урок (<span id="summaryClassName">7-А</span>)</span>
-                            </div>
-                            <span class="text-xs text-slate-400">Перевірено робіт: <strong id="resultsCount" class="text-white">0</strong></span>
-                        </div>
-                        <div id="classMistakesSummaryText" class="text-xs sm:text-sm text-slate-200 leading-relaxed bg-black/40 p-3.5 rounded-xl border border-white/10 whitespace-pre-line"></div>
-                    </div>
-
-                    <div class="liquid-glass-gold p-5 flex flex-col justify-between space-y-3">
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-gold-300">
-                            Експорт таблиці
-                        </span>
-                        <div class="space-y-2.5">
-                            <button onclick="copyTableForExcel()" class="magnetic-target glass-btn-gold w-full py-2.5 px-3 text-xs">
-                                Копіювати для Google Таблиць
-                            </button>
-                            <button onclick="exportCSV()" class="magnetic-target glass-btn-lens w-full py-2.5 px-3 text-xs text-gold-300">
-                                Завантажити CSV (Excel)
-                            </button>
-                            <button onclick="window.print()" class="magnetic-target glass-btn-lens w-full py-2.5 px-3 text-xs">
-                                Друк / Зберегти в PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Structured Results Table -->
-                <div class="liquid-glass p-0 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-white/10 text-gold-300 text-xs font-bold uppercase tracking-wider border-b border-white/15">
-                                    <th class="p-3.5 w-20 text-center border-r border-white/10">Клас</th>
-                                    <th class="p-3.5 w-56 border-r border-white/10">Прізвище та ім'я</th>
-                                    <th class="p-3.5 w-28 text-center border-r border-white/10">Оцінка (з 12)</th>
-                                    <th class="p-3.5 border-r border-white/10">Розбір помилок</th>
-                                    <th class="p-3.5 border-r border-white/10">Фідбек учню</th>
-                                    <th class="p-3.5 w-60">Порада вчителю</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentResultsTableBody" class="divide-y divide-white/10 text-xs sm:text-sm text-slate-200"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
         </section>
+
+        <!-- MAIN WORKFLOW (Hidden until key is set) -->
+        <div id="appWorkflow" class="hidden space-y-6">
+
+            <!-- STEPPER TILES -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
+                <div onclick="setStep(1)" id="stepTile1" class="liquid-glass-gold p-4 cursor-pointer">
+                    <span class="text-[10px] font-bold uppercase text-amber-300">Крок 1</span>
+                    <div class="font-bold text-white text-base mt-1">Клас, тема і завдання</div>
+                </div>
+                <div onclick="setStep(2)" id="stepTile2" class="liquid-glass p-4 cursor-pointer opacity-75">
+                    <span class="text-[10px] font-bold uppercase text-sky-400">Крок 2</span>
+                    <div class="font-bold text-white text-base mt-1">Ключ і критерії ШІ</div>
+                </div>
+                <div onclick="setStep(3)" id="stepTile3" class="liquid-glass p-4 cursor-pointer opacity-75">
+                    <span class="text-[10px] font-bold uppercase text-purple-400">Крок 3</span>
+                    <div class="font-bold text-white text-base mt-1">3-5 робіт і експорт</div>
+                </div>
+            </div>
+
+            <!-- STEP 1: CLASS, TOPIC & TASK PHOTO -->
+            <section id="step1Container" class="space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left: Class Input & Topic -->
+                    <div class="liquid-glass p-6 space-y-5 lg:col-span-1">
+                        <div>
+                            <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">
+                                1. Клас (введіть вручну) *
+                            </label>
+                            <input type="text" id="customClassInput" placeholder="Наприклад: 7-А, 5-Б, 10-В" class="glass-input w-full px-4 text-base font-bold text-amber-300">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-2">
+                                2. Тема / Назва роботи
+                            </label>
+                            <input type="text" id="taskContextInput" placeholder="Напр.: Контрольна робота №1 з географії" class="glass-input w-full px-4 text-xs">
+                        </div>
+                    </div>
+
+                    <!-- Right: Task Capture -->
+                    <div class="liquid-glass p-6 space-y-5 lg:col-span-2 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-amber-300 uppercase tracking-wider">3. Фото завдання / бланка</span>
+                            <h2 class="text-xl font-bold text-white mt-1">Сфотографуйте або оберіть файл бланка</h2>
+                        </div>
+
+                        <div id="taskDropZone" class="rounded-2xl border border-dashed border-amber-300/40 bg-black/40 p-6 text-center space-y-4">
+                            <input type="file" id="taskFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleTaskFileSelect(event)">
+                            <div class="flex flex-wrap justify-center gap-3">
+                                <button onclick="document.getElementById('taskFileInput').click()" class="glass-btn-gold px-5 py-3 text-xs flex items-center space-x-2">
+                                    <i class="ph-bold ph-upload-simple text-lg"></i>
+                                    <span>Обрати з галереї</span>
+                                </button>
+                                <button onclick="openLiveCamera('task')" class="glass-btn-lens px-5 py-3 text-xs flex items-center space-x-2">
+                                    <i class="ph-duotone ph-camera text-lg text-amber-300"></i>
+                                    <span>Зняти на камеру</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="taskPreviewContainer" class="hidden space-y-4">
+                            <div class="relative rounded-xl border border-white/20 bg-black/50 p-2 flex justify-center max-h-60">
+                                <img id="taskPreviewImg" src="" alt="Прев'ю завдання" class="max-h-56 object-contain rounded-lg">
+                                <button onclick="removeTaskImage()" class="absolute top-3 right-3 bg-rose-600 text-white font-bold px-3 py-1.5 text-xs rounded-lg">
+                                    Видалити
+                                </button>
+                            </div>
+
+                            <button onclick="generateKeyFromTask()" id="btnGenerateKey" class="glass-btn-gold w-full py-4 text-xs sm:text-sm flex items-center justify-center space-x-2">
+                                <i class="ph-bold ph-sparkle text-xl"></i>
+                                <span>Сформувати ключ та критерії оцінювання</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- STEP 2: KEY REVIEW & EDITING -->
+            <section id="step2Container" class="hidden space-y-6">
+                <div class="liquid-glass p-6 space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/15 pb-4 gap-3">
+                        <div>
+                            <span class="text-xs font-bold text-amber-300 uppercase">Крок 2 • Ключ оцінювання</span>
+                            <h2 class="text-2xl font-bold text-white">Клас: <span id="displaySelectedClass" class="text-amber-300"></span></h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="addNewQuestionToKey()" class="glass-btn-lens px-3.5 py-2 text-xs">
+                                + Додати питання
+                            </button>
+                            <button onclick="confirmKeyAndProceed()" class="glass-btn-gold px-5 py-2 text-xs">
+                                Підтвердити ключ ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="keyQuestionsList" class="space-y-3"></div>
+
+                    <div class="p-4 bg-white/5 rounded-xl flex items-center justify-between font-bold text-sm">
+                        <span>Загальна сума балів (орієнтир — 12 б.):</span>
+                        <span id="totalKeyPoints" class="text-amber-300 text-xl">0 б.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 3: BATCH STUDENT WORK & EXPORT -->
+            <section id="step3Container" class="hidden space-y-6">
+                <div class="liquid-glass p-6 space-y-6 no-print">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/15 pb-4 gap-3">
+                        <div>
+                            <span class="text-xs font-bold text-sky-300 uppercase">Крок 3 • Зошити учнів</span>
+                            <h2 class="text-2xl font-bold text-white">Перевірка 3–5 робіт класу <span id="currentBatchClass" class="text-amber-300"></span></h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="document.getElementById('studentsFileInput').click()" class="glass-btn-gold px-4 py-2.5 text-xs flex items-center space-x-1.5">
+                                <i class="ph-bold ph-images"></i>
+                                <span>Обрати з галереї (3-5 шт)</span>
+                            </button>
+                            <button onclick="openLiveCamera('student')" class="glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-1.5">
+                                <i class="ph-duotone ph-camera text-amber-300"></i>
+                                <span>Сфотографувати зошит</span>
+                            </button>
+                        </div>
+                        <input type="file" id="studentsFileInput" accept="image/*" capture="environment" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
+                    </div>
+
+                    <div id="studentFilesList" class="grid grid-cols-2 sm:grid-cols-5 gap-3"></div>
+
+                    <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="glass-btn-gold w-full py-4 text-xs sm:text-sm flex items-center justify-center space-x-2">
+                        <i class="ph-bold ph-lightning text-xl"></i>
+                        <span>Перевірити роботи та побудувати таблицю</span>
+                    </button>
+                </div>
+
+                <!-- Loader -->
+                <div id="gradingLoader" class="hidden liquid-glass p-8 text-center space-y-4 no-print">
+                    <div class="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <div class="text-amber-300 font-bold text-lg">Gemini AI перевіряє зошити та формує результати...</div>
+                </div>
+
+                <!-- RESULTS TABLE & EXPORT PANEL -->
+                <div id="resultsContainer" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="liquid-glass p-5 md:col-span-2 space-y-2">
+                            <h3 class="text-xs font-bold text-amber-300 uppercase">Загальні поради вчителю на наступний урок</h3>
+                            <div id="classMistakesSummaryText" class="text-xs sm:text-sm text-slate-200 leading-relaxed bg-black/40 p-3.5 rounded-xl border border-white/10 whitespace-pre-line"></div>
+                        </div>
+
+                        <!-- EXPORT BUTTONS PANEL -->
+                        <div class="liquid-glass-gold p-5 flex flex-col justify-between space-y-3">
+                            <span class="text-xs font-bold text-amber-300 uppercase">Експорт результатів</span>
+                            <div class="space-y-2">
+                                <button onclick="copyTableForExcel()" class="glass-btn-gold w-full py-2.5 text-xs">
+                                    Копіювати для Google Таблиць
+                                </button>
+                                <button onclick="exportCSV()" class="glass-btn-lens w-full py-2.5 text-xs text-amber-300">
+                                    Завантажити CSV (Excel)
+                                </button>
+                                <button onclick="exportDOCX()" class="glass-btn-lens w-full py-2.5 text-xs text-sky-300">
+                                    Завантажити у Word (.docx)
+                                </button>
+                                <button onclick="window.print()" class="glass-btn-lens w-full py-2.5 text-xs">
+                                    Зберегти в PDF / Друк
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Editable Results Table -->
+                    <div class="liquid-glass p-0 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="mainResultsTable">
+                                <thead>
+                                    <tr class="bg-white/10 text-amber-300 text-xs font-bold uppercase tracking-wider border-b border-white/15">
+                                        <th class="p-3.5 w-20 text-center border-r border-white/10">Клас</th>
+                                        <th class="p-3.5 w-52 border-r border-white/10">Прізвище та ім'я</th>
+                                        <th class="p-3.5 w-28 text-center border-r border-white/10">Оцінка (з 12)</th>
+                                        <th class="p-3.5 border-r border-white/10">Розбір помилок</th>
+                                        <th class="p-3.5 border-r border-white/10">Фідбек учню</th>
+                                        <th class="p-3.5 w-56">Порада вчителю</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentResultsTableBody" class="divide-y divide-white/10 text-xs sm:text-sm text-slate-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
 
     </main>
 
-    <!-- LIVE CAMERA CAPTURE MODAL -->
-    <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-6">
-        <div class="flex justify-between items-center border-b border-white/15 pb-3">
-            <span class="text-gold-300 font-bold text-sm uppercase tracking-wider flex items-center space-x-2">
-                <i class="ph-duotone ph-camera text-xl"></i>
-                <span>Задня камера • Зйомка сторінки</span>
-            </span>
-            <button onclick="closeLiveCamera()" class="magnetic-target text-slate-300 hover:text-gold-300 p-2 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Закрити камеру">
-                <i class="ph-bold ph-x text-2xl"></i>
-            </button>
+    <!-- LIVE CAMERA MODAL -->
+    <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col justify-between p-4">
+        <div class="flex justify-between items-center border-b border-white/15 pb-2">
+            <span class="text-amber-300 font-bold text-sm">Задня камера пристрою</span>
+            <button onclick="closeLiveCamera()" class="text-slate-300 hover:text-white p-2"><i class="ph-bold ph-x text-2xl"></i></button>
         </div>
 
-        <div class="relative flex-1 my-4 bg-black/70 rounded-2xl overflow-hidden flex items-center justify-center border border-white/20">
+        <div class="relative flex-1 my-3 bg-black/70 rounded-2xl overflow-hidden flex items-center justify-center border border-white/20">
             <video id="cameraStreamVideo" autoplay playsinline muted></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
         </div>
 
         <div class="flex justify-center gap-4 pb-2">
-            <button onclick="closeLiveCamera()" class="magnetic-target glass-btn-lens px-6 py-3 text-xs sm:text-sm">
-                Скасувати
-            </button>
-            <button onclick="captureCameraSnapshot()" class="magnetic-target glass-btn-gold px-8 py-3 text-xs sm:text-sm flex items-center space-x-2">
-                <i class="ph-bold ph-aperture text-xl"></i>
+            <button onclick="closeLiveCamera()" class="glass-btn-lens px-6 py-3 text-xs">Скасувати</button>
+            <button onclick="captureCameraSnapshot()" class="glass-btn-gold px-8 py-3 text-xs flex items-center space-x-2">
+                <i class="ph-bold ph-aperture text-lg"></i>
                 <span>Зробити знімок</span>
             </button>
         </div>
@@ -614,261 +389,25 @@
 
     <!-- API KEY MODAL -->
     <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="liquid-glass max-w-lg w-full p-6 space-y-5">
-            <div class="flex items-center justify-between border-b border-white/15 pb-3">
-                <div class="flex items-center space-x-2 text-gold-300 font-display font-bold text-lg">
-                    <i class="ph-duotone ph-key text-xl"></i>
-                    <span>Налаштування Gemini API Key</span>
-                </div>
-                <button onclick="closeApiKeyModal()" class="magnetic-target text-slate-300 hover:text-gold-300 p-1.5 rounded-lg" aria-label="Закрити вікно ключа">
-                    <i class="ph-bold ph-x text-xl"></i>
-                </button>
+        <div class="liquid-glass max-w-lg w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                <span class="text-amber-300 font-bold text-base">Налаштування Gemini API Key</span>
+                <button onclick="closeApiKeyModal()" class="text-slate-300 p-1"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Вставте ваш ключ Gemini API (формат <code class="text-gold-300">AQ...</code> або <code class="text-gold-300">AIza...</code>). Він зберігається лише локально у <code class="text-gold-300">localStorage</code> цього браузера.
-            </p>
-
-            <div>
-                <label for="apiKeyInput" class="block text-xs font-bold text-gold-300 uppercase tracking-wider mb-2">
-                    Ключ API (Gemini)
-                </label>
-                <input type="password" id="apiKeyInput" placeholder="AQ.Ab8... або AIza..." class="glass-input w-full px-4 text-sm font-medium">
-            </div>
-
-            <div class="text-xs">
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-sky-300 hover:text-gold-300 underline font-semibold">
-                    Отримати ключ у Google AI Studio ➔
-                </a>
-            </div>
-
-            <div class="flex justify-end gap-2.5 pt-2">
-                <button onclick="closeApiKeyModal()" class="magnetic-target glass-btn-lens px-4 py-2.5 text-xs">
-                    Скасувати
-                </button>
-                <button onclick="saveApiKey()" class="magnetic-target glass-btn-gold px-5 py-2.5 text-xs">
-                    Зберегти ключ
-                </button>
+            <p class="text-xs text-slate-300">Вкажіть ваш ключ (зберігається у локальному localStorage браузера):</p>
+            <input type="password" id="apiKeyInput" placeholder="AQ... або AIza..." class="glass-input w-full px-4 text-xs font-mono">
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeApiKeyModal()" class="glass-btn-lens px-4 py-2 text-xs">Скасувати</button>
+                <button onclick="saveApiKeyModal()" class="glass-btn-gold px-5 py-2 text-xs">Зберегти ключ</button>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="content-layer border-t border-white/10 bg-black/45 backdrop-blur-md py-4 text-center text-[11px] font-medium text-slate-400 no-print">
-        ГеоГраф Spatial AI • Liquid Glass &amp; Three.js • Локальне зберігання ключа без трекінгу
-    </footer>
-
-    <!-- SPATIAL 3D (THREE.JS), KINETIC SCROLL TYPOGRAPHY, REFRACTION & MAGNETIC POINTER ENGINE -->
-    <script>
-        (function initSpatialLiquidEngine() {
-            const canvas = document.getElementById('spatialCanvas');
-            if (!canvas || !window.THREE) return;
-
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 0, 7.5);
-
-            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-
-            const ambientLight = new THREE.AmbientLight(0xc4b5fd, 0.75);
-            scene.add(ambientLight);
-
-            const goldLight = new THREE.PointLight(0xffd43b, 2.2, 22);
-            goldLight.position.set(4.5, 3.2, 5);
-            scene.add(goldLight);
-
-            const cyanLight = new THREE.PointLight(0x38bdf8, 2.0, 22);
-            cyanLight.position.set(-4.5, -2.5, 4.5);
-            scene.add(cyanLight);
-
-            function createProceduralTexture(mode = 0) {
-                const texCanvas = document.createElement('canvas');
-                texCanvas.width = 256;
-                texCanvas.height = 256;
-                const ctx = texCanvas.getContext('2d');
-                ctx.clearRect(0, 0, 256, 256);
-
-                if (mode === 0) {
-                    ctx.strokeStyle = 'rgba(255, 212, 59, 0.35)';
-                    ctx.lineWidth = 1.5;
-                    for (let r = 18; r < 140; r += 18) {
-                        ctx.beginPath();
-                        for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.15) {
-                            const wobble = Math.sin(a * 4 + r * 0.1) * 7;
-                            const x = 128 + Math.cos(a) * (r + wobble);
-                            const y = 128 + Math.sin(a) * (r - wobble * 0.6);
-                            if (a === 0) ctx.moveTo(x, y);
-                            else ctx.lineTo(x, y);
-                        }
-                        ctx.stroke();
-                    }
-                } else {
-                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.42)';
-                    ctx.lineWidth = 1.4;
-                    for (let i = -256; i < 512; i += 24) {
-                        ctx.beginPath();
-                        ctx.moveTo(i, 0);
-                        ctx.lineTo(i + 180, 256);
-                        ctx.stroke();
-                    }
-                }
-                const texture = new THREE.CanvasTexture(texCanvas);
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                return texture;
-            }
-
-            const topoTexture = createProceduralTexture(0);
-            const latticeTexture = createProceduralTexture(1);
-
-            const assembly = new THREE.Group();
-            scene.add(assembly);
-
-            const coreGeo = new THREE.IcosahedronGeometry(1.55, 1);
-            const coreMat = new THREE.MeshPhysicalMaterial({
-                color: 0xffd43b, roughness: 0.22, metalness: 0.35, transparent: true, opacity: 0.28, map: topoTexture, wireframe: false
-            });
-            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-            assembly.add(coreMesh);
-
-            const wireGeo = new THREE.IcosahedronGeometry(1.62, 1);
-            const wireMat = new THREE.MeshBasicMaterial({
-                color: 0xffd43b, wireframe: true, transparent: true, opacity: 0.24
-            });
-            const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-            assembly.add(wireMesh);
-
-            const outerShellGeo = new THREE.OctahedronGeometry(2.35, 0);
-            const outerShellMat = new THREE.MeshPhysicalMaterial({
-                color: 0x38bdf8, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.18, map: latticeTexture
-            });
-            const outerShell = new THREE.Mesh(outerShellGeo, outerShellMat);
-            assembly.add(outerShell);
-
-            const orbitRingGeo = new THREE.TorusGeometry(2.85, 0.025, 16, 100);
-            const orbitRingMat = new THREE.MeshBasicMaterial({
-                color: 0xa855f7, transparent: true, opacity: 0.42
-            });
-            const orbitRing = new THREE.Mesh(orbitRingGeo, orbitRingMat);
-            orbitRing.rotation.x = Math.PI / 3;
-            assembly.add(orbitRing);
-
-            const particleCount = 90;
-            const particlePositions = new Float32Array(particleCount * 3);
-            for (let i = 0; i < particleCount; i++) {
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                const radius = 3.2 + Math.random() * 2.6;
-                particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-                particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-                particlePositions[i * 3 + 2] = radius * Math.cos(phi);
-            }
-            const particlesGeo = new THREE.BufferGeometry();
-            particlesGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-            const particlesMat = new THREE.PointsMaterial({ color: 0xffe885, size: 0.055, transparent: true, opacity: 0.65 });
-            const particles = new THREE.Points(particlesGeo, particlesMat);
-            assembly.add(particles);
-
-            let scrollProgress = 0;
-            let lastScrollY = window.scrollY;
-            let scrollVelocity = 0;
-            let scrollDirection = 1;
-            let pointerX = 0;
-            let pointerY = 0;
-
-            window.addEventListener('scroll', () => {
-                const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-                scrollProgress = Math.min(1, Math.max(0, window.scrollY / docHeight));
-                const currentY = window.scrollY;
-                const deltaY = currentY - lastScrollY;
-                if (Math.abs(deltaY) > 0.5) {
-                    scrollDirection = deltaY > 0 ? 1 : -1;
-                }
-                scrollVelocity = Math.min(1, Math.abs(deltaY) / 40);
-                lastScrollY = currentY;
-            }, { passive: true });
-
-            window.addEventListener('pointermove', (e) => {
-                pointerX = (e.clientX / window.innerWidth) * 2 - 1;
-                pointerY = -((e.clientY / window.innerHeight) * 2 - 1);
-            }, { passive: true });
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-            });
-
-            if (window.matchMedia('(pointer: fine)').matches) {
-                document.querySelectorAll('.magnetic-target').forEach((el) => {
-                    el.addEventListener('mousemove', (e) => {
-                        const rect = el.getBoundingClientRect();
-                        const dx = e.clientX - (rect.left + rect.width / 2);
-                        const dy = e.clientY - (rect.top + rect.height / 2);
-                        el.style.transform = `translate3d(${dx * 0.22}px, ${dy * 0.22}px, 0)`;
-                    });
-                    el.addEventListener('mouseleave', () => {
-                        el.style.transform = 'translate3d(0, 0, 0)';
-                    });
-                });
-            }
-
-            const clock = new THREE.Clock();
-            function animate() {
-                requestAnimationFrame(animate);
-                const t = clock.getElapsedTime();
-                scrollVelocity *= 0.88;
-
-                // Kinetic Typography & Liquid Refraction CSS variables update
-                const wght = Math.round(700 + scrollVelocity * 200);
-                const skewDeg = (scrollVelocity * scrollDirection * -3.5).toFixed(2) + 'deg';
-                const trackEm = (-0.02 + scrollVelocity * 0.025).toFixed(3) + 'em';
-                const shiftPx = (scrollVelocity * 10).toFixed(1) + 'px';
-                const glowAlpha = (0.18 + scrollVelocity * 0.35).toFixed(2);
-
-                document.documentElement.style.setProperty('--kinetic-wght', String(wght));
-                document.documentElement.style.setProperty('--kinetic-skew', skewDeg);
-                document.documentElement.style.setProperty('--kinetic-track', trackEm);
-                document.documentElement.style.setProperty('--refract-shift', shiftPx);
-                document.documentElement.style.setProperty('--refract-glow', glowAlpha);
-                document.documentElement.style.setProperty('--scroll-energy', scrollVelocity.toFixed(2));
-
-                const explode = scrollProgress * 1.15 + scrollVelocity * 0.22;
-                coreMesh.position.set(0, explode * 0.35, 0);
-                wireMesh.scale.setScalar(1 + explode * 0.14);
-                outerShell.scale.setScalar(1 + explode * 0.28);
-                outerShell.rotation.y = -t * 0.22 - scrollProgress * Math.PI * 1.5;
-                orbitRing.scale.setScalar(1 + explode * 0.35);
-                orbitRing.rotation.z = t * 0.18 + scrollProgress * Math.PI;
-                particles.scale.setScalar(1 + explode * 0.25);
-
-                if (scrollProgress > 0.45 && coreMat.map !== latticeTexture) {
-                    coreMat.map = latticeTexture;
-                    coreMat.needsUpdate = true;
-                } else if (scrollProgress <= 0.45 && coreMat.map !== topoTexture) {
-                    coreMat.map = topoTexture;
-                    coreMat.needsUpdate = true;
-                }
-
-                assembly.rotation.y += 0.0035 + scrollVelocity * 0.015;
-                assembly.rotation.x = THREE.MathUtils.lerp(assembly.rotation.x, pointerY * 0.35 + scrollProgress * 0.6, 0.05);
-                assembly.position.x = THREE.MathUtils.lerp(assembly.position.x, pointerX * 0.65, 0.04);
-                assembly.position.y = THREE.MathUtils.lerp(assembly.position.y, pointerY * 0.45, 0.04);
-
-                renderer.render(scene, camera);
-            }
-            animate();
-        })();
-    </script>
-
-    <!-- MAIN APPLICATION LOGIC (ES Module) -->
     <script type="module">
         let state = {
             apiKey: localStorage.getItem('gemini_api_key') || '',
-            selectedClass: '7-А',
+            selectedClass: '',
+            taskTopic: '',
             currentStep: 1,
             taskImageBase64: null,
             taskImageType: null,
@@ -885,17 +424,17 @@
             const module = await import('@google/genai');
             GoogleGenAI = module.GoogleGenAI;
         } catch (e) {
-            console.error("Помилка завантаження Gemini SDK:", e);
+            console.error("SDK import error:", e);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             updateApiKeyBadge();
-            syncStepperVisuals();
-
+            
+            // Register functions globally
+            window.submitGateKey = submitGateKey;
             window.openApiKeyModal = openApiKeyModal;
             window.closeApiKeyModal = closeApiKeyModal;
-            window.saveApiKey = saveApiKey;
-            window.handleClassChange = handleClassChange;
+            window.saveApiKeyModal = saveApiKeyModal;
             window.setStep = setStep;
             window.openLiveCamera = openLiveCamera;
             window.closeLiveCamera = closeLiveCamera;
@@ -912,19 +451,37 @@
             window.startBatchGrading = startBatchGrading;
             window.copyTableForExcel = copyTableForExcel;
             window.exportCSV = exportCSV;
+            window.exportDOCX = exportDOCX;
             window.closeAlert = closeAlert;
 
-            if (!GoogleGenAI) {
-                showAlert('Помилка завантаження модулів ШІ. Перевірте інтернет-з'єднання та оновіть сторінку.', 'warning');
-                return;
-            }
-
-            if (!state.apiKey) {
-                openApiKeyModal();
-            } else {
+            if (state.apiKey) {
                 initGenAI();
+                showWorkflow();
+            } else {
+                showAuthGate();
             }
         });
+
+        function showAuthGate() {
+            document.getElementById('authGateSection').classList.remove('hidden');
+            document.getElementById('appWorkflow').classList.add('hidden');
+        }
+
+        function showWorkflow() {
+            document.getElementById('authGateSection').classList.add('hidden');
+            document.getElementById('appWorkflow').classList.remove('hidden');
+        }
+
+        function submitGateKey() {
+            const key = document.getElementById('gateApiKeyInput').value.trim();
+            if (!key) { showAlert('Введіть ваш Gemini API Key.', 'warning'); return; }
+            state.apiKey = key;
+            localStorage.setItem('gemini_api_key', key);
+            updateApiKeyBadge();
+            initGenAI();
+            showWorkflow();
+            showAlert('Ключ прийнято. Введіть клас і завантажте завдання.', 'success');
+        }
 
         function initGenAI() {
             if (!state.apiKey || !GoogleGenAI) return false;
@@ -932,90 +489,39 @@
                 state.genAI = new GoogleGenAI({ apiKey: state.apiKey });
                 return true;
             } catch (e) {
-                console.error('Failed to initialize GenAI:', e);
+                console.error(e);
                 return false;
             }
         }
 
         function updateApiKeyBadge() {
-            const badgeText = document.getElementById('apiKeyBadgeText');
-            badgeText.textContent = state.apiKey ? "API КЛЮЧ ЗБЕРЕЖЕНО ✓" : "ВКАЗАТИ API КЛЮЧ";
+            document.getElementById('apiKeyBadgeText').textContent = state.apiKey ? "API КЛЮЧ ЗБЕРЕЖЕНО ✓" : "ВКАЗАТИ API КЛЮЧ";
         }
 
         function openApiKeyModal() {
             document.getElementById('apiKeyInput').value = state.apiKey;
             document.getElementById('apiKeyModal').classList.remove('hidden');
         }
-
         function closeApiKeyModal() {
             document.getElementById('apiKeyModal').classList.add('hidden');
         }
-
-        function saveApiKey() {
+        function saveApiKeyModal() {
             const val = document.getElementById('apiKeyInput').value.trim();
-            if (!val) {
-                showAlert('Будь ласка, введіть ваш ключ Gemini API.', 'warning');
-                return;
-            }
+            if (!val) return;
             state.apiKey = val;
             localStorage.setItem('gemini_api_key', val);
             updateApiKeyBadge();
-
-            if (initGenAI()) {
-                showAlert('API ключ збережено та SDK ініціалізовано.', 'success');
-                closeApiKeyModal();
-            } else {
-                showAlert('Ключ збережено, але не вдалося ініціалізувати SDK.', 'warning');
-            }
-        }
-
-        function handleClassChange(val) {
-            const customInput = document.getElementById('customClassInput');
-            if (val === 'custom') {
-                customInput.classList.remove('hidden');
-                state.selectedClass = customInput.value.trim() || '7-А';
-            } else {
-                customInput.classList.add('hidden');
-                state.selectedClass = val;
-            }
-            syncClassLabels();
-        }
-
-        document.getElementById('customClassInput')?.addEventListener('input', (e) => {
-            state.selectedClass = e.target.value.trim() || '7-А';
-            syncClassLabels();
-        });
-
-        function syncClassLabels() {
-            document.getElementById('displaySelectedClass').textContent = state.selectedClass;
-            document.getElementById('currentBatchClass').textContent = state.selectedClass;
-            document.getElementById('summaryClassName').textContent = state.selectedClass;
-        }
-
-        function syncStepperVisuals() {
-            const tiles = [
-                document.getElementById('stepTile1'),
-                document.getElementById('stepTile2'),
-                document.getElementById('stepTile3')
-            ];
-            tiles.forEach((tile, idx) => {
-                const stepIdx = idx + 1;
-                if (stepIdx === state.currentStep) {
-                    tile.className = 'liquid-glass-gold p-5 cursor-pointer group';
-                } else {
-                    tile.className = 'liquid-glass-subtle opacity-75 p-5 cursor-pointer group hover:opacity-100 transition-opacity';
-                }
-            });
+            initGenAI();
+            closeApiKeyModal();
+            showWorkflow();
         }
 
         function setStep(stepNum) {
-            if ((stepNum === 2 || stepNum === 3) && state.keyQuestions.length === 0) {
-                showAlert('Спочатку завантажте або сфотографуйте завдання на Кроці 1, щоб сформувати ключ.', 'warning');
+            if (stepNum > 1 && !state.keyQuestions.length && stepNum !== 1) {
+                showAlert('Спочатку сформуйте ключ за допомогою бланка завдання на Кроці 1.', 'warning');
                 return;
             }
-
             state.currentStep = stepNum;
-            syncStepperVisuals();
             document.getElementById('step1Container').classList.toggle('hidden', stepNum !== 1);
             document.getElementById('step2Container').classList.toggle('hidden', stepNum !== 2);
             document.getElementById('step3Container').classList.toggle('hidden', stepNum !== 3);
@@ -1027,37 +533,31 @@
             const video = document.getElementById('cameraStreamVideo');
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                const fallbackInputId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
-                document.getElementById(fallbackInputId)?.click();
+                const fallbackId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
+                document.getElementById(fallbackId)?.click();
                 return;
             }
 
             try {
                 let stream = null;
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { exact: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-                        audio: false
-                    });
-                } catch (_exactErr) {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { ideal: 'environment' } },
-                        audio: false
-                    });
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } } });
+                } catch (e) {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
                 }
                 state.cameraStream = stream;
-                video.srcObject = state.cameraStream;
+                video.srcObject = stream;
                 modal.classList.remove('hidden');
             } catch (err) {
-                const fallbackInputId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
-                showAlert('Камера в браузері недоступна — відкриваємо системну камеру пристрою.', 'info');
-                document.getElementById(fallbackInputId)?.click();
+                showAlert('Камеру не вдалося відкрити напряму, застосовано вибір із галереї.', 'info');
+                const fallbackId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
+                document.getElementById(fallbackId)?.click();
             }
         }
 
         function closeLiveCamera() {
             if (state.cameraStream) {
-                state.cameraStream.getTracks().forEach(track => track.stop());
+                state.cameraStream.getTracks().forEach(t => t.stop());
                 state.cameraStream = null;
             }
             document.getElementById('cameraModal').classList.add('hidden');
@@ -1068,108 +568,77 @@
             const canvas = document.getElementById('cameraCanvas');
             canvas.width = video.videoWidth || 1280;
             canvas.height = video.videoHeight || 720;
-
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
             const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-            const base64Data = dataUrl.split(',')[1];
             closeLiveCamera();
 
             if (state.cameraTargetMode === 'task') {
-                state.taskImageBase64 = base64Data;
+                state.taskImageBase64 = dataUrl.split(',')[1];
                 state.taskImageType = 'image/jpeg';
                 document.getElementById('taskPreviewImg').src = dataUrl;
                 document.getElementById('taskDropZone').classList.add('hidden');
                 document.getElementById('taskPreviewContainer').classList.remove('hidden');
-            } else if (state.cameraTargetMode === 'student') {
+            } else {
                 state.studentFiles.push({
-                    name: `Знімок_роботи_${state.studentFiles.length + 1}.jpg`,
-                    base64: base64Data,
+                    name: `Зошит_${state.studentFiles.length + 1}.jpg`,
+                    base64: dataUrl.split(',')[1],
                     mimeType: 'image/jpeg',
                     previewUrl: dataUrl
                 });
                 renderStudentFilesList();
-                showAlert('Фото роботи додано до списку перевірки.', 'success');
             }
-        }
-
-        function compressImageDataUrl(dataUrl, maxDim = 1600, quality = 0.82) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    let { width, height } = img;
-                    if (width > maxDim || height > maxDim) {
-                        if (width > height) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-                    }
-                    const c = document.createElement('canvas');
-                    c.width = width;
-                    c.height = height;
-                    const ctx = c.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const outUrl = c.toDataURL('image/jpeg', quality);
-                    resolve({ dataUrl: outUrl, base64: outUrl.split(',')[1], mimeType: 'image/jpeg' });
-                };
-                img.onerror = () => resolve({ dataUrl, base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
-                img.src = dataUrl;
-            });
         }
 
         function handleTaskFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = async function(evt) {
-                const compressed = await compressImageDataUrl(evt.target.result);
-                state.taskImageBase64 = compressed.base64;
-                state.taskImageType = compressed.mimeType;
-
-                document.getElementById('taskPreviewImg').src = compressed.dataUrl;
+            reader.onload = function(evt) {
+                state.taskImageBase64 = evt.target.result.split(',')[1];
+                state.taskImageType = file.type || 'image/jpeg';
+                document.getElementById('taskPreviewImg').src = evt.target.result;
                 document.getElementById('taskDropZone').classList.add('hidden');
                 document.getElementById('taskPreviewContainer').classList.remove('hidden');
             };
             reader.readAsDataURL(file);
-            e.target.value = '';
         }
 
         function removeTaskImage() {
             state.taskImageBase64 = null;
             state.taskImageType = null;
-            document.getElementById('taskFileInput').value = '';
             document.getElementById('taskPreviewImg').src = '';
             document.getElementById('taskDropZone').classList.remove('hidden');
             document.getElementById('taskPreviewContainer').classList.add('hidden');
         }
 
         async function generateKeyFromTask() {
-            if (!state.apiKey) { openApiKeyModal(); return; }
-            if (!state.taskImageBase64) { showAlert('Спочатку завантажте або сфотографуйте завдання.', 'warning'); return; }
-            if (!state.genAI && !initGenAI()) {
-                showAlert('Не вдалося ініціалізувати Gemini SDK. Перевірте ключ.', 'warning');
+            const customClass = document.getElementById('customClassInput').value.trim();
+            if (!customClass) {
+                showAlert('Будь ласка, вкажіть клас у полі (наприклад, 7-А).', 'warning');
+                return;
+            }
+            state.selectedClass = customClass;
+            state.taskTopic = document.getElementById('taskContextInput').value.trim();
+
+            if (!state.taskImageBase64) {
+                showAlert('Завантажте фото завдання або зробіть знімок.', 'warning');
                 return;
             }
 
             const btn = document.getElementById('btnGenerateKey');
             btn.disabled = true;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-xl"></i> <span>Формуємо ключ відповідей...</span>`;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-xl"></i> <span>Аналізуємо бланк...</span>`;
 
-            const extraContext = document.getElementById('taskContextInput').value.trim();
-            const prompt = `Ти — досвідчений учитель географії в Україні. Проаналізуй це фото завдання для ${state.selectedClass} класу${extraContext ? ` (контекст: ${extraContext})` : ''}.
-Сформуй ключ правильних відповідей і критерії оцінювання так, щоб сума балів орієнтовно відповідала 12-бальній шкалі.
-Поверни ТІЛЬКИ валідний JSON у такому форматі:
+            const prompt = `Ти — учитель географії в Україні. Проаналізуй фото завдання для ${state.selectedClass} класу${state.taskTopic ? ` (Тема: ${state.taskTopic})` : ''}.
+Сформуй ключ відповідей та розподіли бали за 12-бальною шкалою.
+Поверни ТІЛЬКИ JSON:
 {
   "questions": [
     {
       "num": "1",
-      "text": "Коротке формулювання завдання",
-      "key": "Правильна відповідь або ключові географічні тези",
+      "text": "Текст завдання",
+      "key": "Правильна відповідь / критерії",
       "maxPoints": 1
     }
   ]
@@ -1190,15 +659,17 @@
 
                 const parsed = JSON.parse(response.text);
                 state.keyQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
+                document.getElementById('displaySelectedClass').textContent = state.selectedClass;
+                document.getElementById('currentBatchClass').textContent = state.selectedClass;
                 renderKeyQuestions();
                 setStep(2);
-                showAlert('Ключ згенеровано! Перевірте бали та підтвердьте його.', 'success');
+                showAlert('Ключ розпізнано! Перевірте його та натисніть «Підтвердити».', 'success');
             } catch (err) {
                 console.error(err);
-                showAlert('Не вдалося сформувати ключ через Gemini API: ' + err.message, 'warning');
+                showAlert('Помилка генерації ключа: ' + err.message, 'warning');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="ph-bold ph-sparkle text-xl"></i> <span>Виявити завдання та сформувати ключ оцінювання</span>`;
+                btn.innerHTML = `<i class="ph-bold ph-sparkle text-xl"></i> <span>Сформувати ключ та критерії оцінювання</span>`;
             }
         }
 
@@ -1208,34 +679,25 @@
             let total = 0;
 
             state.keyQuestions.forEach((q, idx) => {
-                const pts = parseFloat(q.maxPoints) || 0;
-                total += pts;
-
+                total += parseFloat(q.maxPoints) || 0;
                 const div = document.createElement('div');
-                div.className = 'liquid-glass-subtle p-4 space-y-3';
+                div.className = 'liquid-glass p-4 space-y-2';
                 div.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="flex items-center space-x-2.5 flex-1">
-                            <span class="w-7 h-7 rounded-lg bg-gold-400 text-black font-extrabold flex items-center justify-center text-xs shrink-0">
-                                ${escapeHtml(q.num || idx + 1)}
-                            </span>
-                            <input type="text" value="${escapeHtml(q.text || '')}" onchange="updateKeyQuestion(${idx}, 'text', this.value)" class="glass-input px-3 py-1.5 text-xs sm:text-sm w-full font-semibold" placeholder="Питання або завдання...">
+                    <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                        <div class="flex items-center space-x-2 flex-1">
+                            <span class="w-6 h-6 rounded bg-amber-400 text-black font-bold flex items-center justify-center text-xs shrink-0">${q.num || idx + 1}</span>
+                            <input type="text" value="${escapeHtml(q.text || '')}" onchange="updateKeyQuestion(${idx}, 'text', this.value)" class="glass-input px-3 py-1 text-xs w-full font-semibold">
                         </div>
-                        <div class="flex items-center space-x-2 self-end sm:self-auto">
-                            <input type="number" step="0.5" min="0" max="12" value="${q.maxPoints ?? 1}" onchange="updateKeyQuestion(${idx}, 'maxPoints', parseFloat(this.value) || 0)" class="glass-input w-20 px-2 py-1.5 text-xs sm:text-sm text-center font-bold text-gold-300">
-                            <span class="text-xs text-slate-300 font-semibold">б.</span>
-                            <button onclick="deleteKeyQuestion(${idx})" class="magnetic-target text-rose-400 hover:text-rose-300 p-2 rounded-lg" title="Видалити пункт">
-                                <i class="ph-bold ph-trash text-lg"></i>
-                            </button>
+                        <div class="flex items-center space-x-1 shrink-0">
+                            <input type="number" step="0.5" min="0" max="12" value="${q.maxPoints ?? 1}" onchange="updateKeyQuestion(${idx}, 'maxPoints', parseFloat(this.value)||0)" class="glass-input w-16 text-center text-xs font-bold text-amber-300">
+                            <span class="text-xs">б.</span>
+                            <button onclick="deleteKeyQuestion(${idx})" class="text-rose-400 p-1"><i class="ph-bold ph-trash text-base"></i></button>
                         </div>
                     </div>
-                    <div>
-                        <textarea onchange="updateKeyQuestion(${idx}, 'key', this.value)" class="glass-input w-full p-3 text-xs sm:text-sm leading-relaxed min-h-[68px]" placeholder="Еталонна відповідь або критерії...">${escapeHtml(q.key || '')}</textarea>
-                    </div>
+                    <textarea onchange="updateKeyQuestion(${idx}, 'key', this.value)" class="glass-input w-full p-2 text-xs leading-relaxed min-h-[50px]">${escapeHtml(q.key || '')}</textarea>
                 `;
                 container.appendChild(div);
             });
-
             document.getElementById('totalKeyPoints').textContent = `${total} б.`;
         }
 
@@ -1243,42 +705,31 @@
             state.keyQuestions[idx][field] = val;
             renderKeyQuestions();
         }
-
         function deleteKeyQuestion(idx) {
             state.keyQuestions.splice(idx, 1);
             renderKeyQuestions();
         }
-
         function addNewQuestionToKey() {
-            state.keyQuestions.push({
-                num: String(state.keyQuestions.length + 1),
-                text: 'Додаткове завдання',
-                key: 'Критерії правильної відповіді',
-                maxPoints: 1
-            });
+            state.keyQuestions.push({ num: String(state.keyQuestions.length + 1), text: 'Нове завдання', key: 'Еталон відповіді', maxPoints: 1 });
             renderKeyQuestions();
         }
 
         function confirmKeyAndProceed() {
-            if (state.keyQuestions.length === 0) {
-                showAlert('Додайте хоча б одне завдання до ключа перед переходом далі.', 'warning');
-                return;
-            }
+            if (!state.keyQuestions.length) return;
             setStep(3);
-            showAlert('Ключ підтверджено! Тепер додайте фото робіт учнів.', 'success');
+            showAlert('Ключ підтверджено. Завантажте від 3 до 5 робіт учнів.', 'success');
         }
 
         function handleStudentFilesSelect(e) {
             const files = Array.from(e.target.files || []);
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = async function(evt) {
-                    const compressed = await compressImageDataUrl(evt.target.result);
+                reader.onload = function(evt) {
                     state.studentFiles.push({
                         name: file.name,
-                        base64: compressed.base64,
-                        mimeType: compressed.mimeType,
-                        previewUrl: compressed.dataUrl
+                        base64: evt.target.result.split(',')[1],
+                        mimeType: file.type || 'image/jpeg',
+                        previewUrl: evt.target.result
                     });
                     renderStudentFilesList();
                 };
@@ -1290,18 +741,16 @@
         function renderStudentFilesList() {
             const container = document.getElementById('studentFilesList');
             container.innerHTML = '';
-
             state.studentFiles.forEach((file, idx) => {
                 const card = document.createElement('div');
-                card.className = 'relative liquid-glass-subtle p-2 flex flex-col items-center space-y-2';
+                card.className = 'relative liquid-glass p-2 text-center space-y-1';
                 card.innerHTML = `
-                    <img src="${file.previewUrl}" alt="${escapeHtml(file.name)}" class="h-24 w-full object-cover rounded-xl">
-                    <span class="text-[11px] font-medium text-slate-300 truncate w-full text-center">${escapeHtml(file.name)}</span>
-                    <button onclick="removeStudentFile(${idx})" class="magnetic-target absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shadow-md" aria-label="Прибрати фото">×</button>
+                    <img src="${file.previewUrl}" class="h-20 w-full object-cover rounded-lg">
+                    <div class="text-[10px] text-slate-300 truncate">${escapeHtml(file.name)}</div>
+                    <button onclick="removeStudentFile(${idx})" class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs">×</button>
                 `;
                 container.appendChild(card);
             });
-
             document.getElementById('btnStartGrading').disabled = state.studentFiles.length === 0;
         }
 
@@ -1311,28 +760,22 @@
         }
 
         async function startBatchGrading() {
-            if (!state.apiKey) { openApiKeyModal(); return; }
-            if (!state.genAI && !initGenAI()) {
-                showAlert('Не вдалося ініціалізувати Gemini SDK.', 'warning');
-                return;
-            }
-            if (state.studentFiles.length === 0) return;
-
+            if (!state.studentFiles.length) return;
             document.getElementById('gradingLoader').classList.remove('hidden');
             document.getElementById('resultsContainer').classList.add('hidden');
 
             const keyPromptStr = JSON.stringify(state.keyQuestions);
-            const prompt = `Ти — уважний учитель географії в Україні. Оціни роботу учня ${state.selectedClass} класу за затвердженим ключем (підсумкова оцінка — за 12-бальною шкалою, ціле число від 1 до 12):
+            const prompt = `Ти — учитель географії. Перевір письмову роботу учня ${state.selectedClass} класу за цим ключем:
 ${keyPromptStr}
 
-Розпізнай прізвище та ім'я учня з фото (якщо не вказано або нерозбірливо — напиши "Учень / Учениця (уточнити)").
-Поверни ТІЛЬКИ валідний JSON у такому форматі:
+Розпізнай Прізвище та Ім'я з шапки аркуша (якщо не вказано — "Учень / Учениця (уточнити)").
+Поверни ТІЛЬКИ JSON:
 {
   "studentName": "Прізвище та Ім'я",
   "totalScore": 10,
-  "mistakes": "Короткий розбір помилок у завданнях",
-  "feedback": "Доброзичливий фідбек учню (2 короткі речення)",
-  "teacherAdvice": "Що повторити або розібрати на наступному уроці"
+  "mistakes": "Короткий розбір помилок",
+  "feedback": "Підбадьорливий фідбек учню (1-2 речення)",
+  "teacherAdvice": "Що опрацювати на наступному уроці"
 }`;
 
             const results = [];
@@ -1351,23 +794,21 @@ ${keyPromptStr}
                     });
 
                     const parsed = JSON.parse(response.text);
-                    const boundedScore = Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1)));
-
                     results.push({
                         studentName: parsed.studentName || file.name,
-                        totalScore: boundedScore,
-                        mistakes: parsed.mistakes || 'Помилок не виявлено.',
-                        feedback: parsed.feedback || 'Гарна робота, продовжуй у тому ж дусі.',
-                        teacherAdvice: parsed.teacherAdvice || 'Закріпити ключові поняття теми.'
+                        totalScore: Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1))),
+                        mistakes: parsed.mistakes || 'Помилок немає.',
+                        feedback: parsed.feedback || 'Молодець, чудова робота!',
+                        teacherAdvice: parsed.teacherAdvice || 'Закріпити пройдений матеріал.'
                     });
-                } catch (err) {
-                    console.error(err);
+                } catch (e) {
+                    console.error(e);
                     results.push({
                         studentName: file.name,
                         totalScore: 0,
-                        mistakes: 'Помилка аналізу зображення: ' + err.message,
-                        feedback: 'Робота потребує ручної перевірки вчителем.',
-                        teacherAdvice: 'Перевірити фото вручну.'
+                        mistakes: 'Не вдалося розпізнати: ' + e.message,
+                        feedback: 'Потребує перевірки вчителем вручну.',
+                        teacherAdvice: 'Ручна перевірка.'
                     });
                 }
             }
@@ -1376,115 +817,129 @@ ${keyPromptStr}
             renderResultsTable();
             document.getElementById('gradingLoader').classList.add('hidden');
             document.getElementById('resultsContainer').classList.remove('hidden');
-            showAlert(`Перевірено робіт: ${results.length}. Таблиця готова до редагування та експорту.`, 'success');
+            showAlert(`Перевірено робіт: ${results.length}. Результати занесені в таблицю.`, 'success');
         }
 
         function renderResultsTable() {
             const tbody = document.getElementById('studentResultsTableBody');
             tbody.innerHTML = '';
-
-            let summaryLines = [];
+            let summary = [];
 
             state.gradingResults.forEach((res, idx) => {
-                if (res.teacherAdvice) {
-                    summaryLines.push(`• ${res.studentName}: ${res.teacherAdvice}`);
-                }
+                if (res.teacherAdvice) summary.push(`• ${res.studentName}: ${res.teacherAdvice}`);
 
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-white/5 transition-colors";
+                tr.className = "hover:bg-white/5 border-b border-white/10";
                 tr.innerHTML = `
-                    <td class="p-3.5 text-center border-r border-white/10 font-bold text-gold-300">${escapeHtml(state.selectedClass)}</td>
-                    <td class="p-3.5 border-r border-white/10">
-                        <input type="text" value="${escapeHtml(res.studentName)}" onchange="state.gradingResults[${idx}].studentName = this.value" class="glass-input px-3 py-1.5 text-xs sm:text-sm w-full font-semibold" aria-label="Прізвище та ім'я учня">
+                    <td class="p-3 text-center font-bold text-amber-300 border-r border-white/10">${escapeHtml(state.selectedClass)}</td>
+                    <td class="p-3 border-r border-white/10">
+                        <input type="text" value="${escapeHtml(res.studentName)}" onchange="state.gradingResults[${idx}].studentName = this.value" class="glass-input px-2 py-1 text-xs w-full font-semibold">
                     </td>
-                    <td class="p-3.5 text-center border-r border-white/10 font-display font-extrabold text-gold-300 text-base">${escapeHtml(res.totalScore)} / 12</td>
-                    <td class="p-3.5 border-r border-white/10 text-slate-200">${escapeHtml(res.mistakes)}</td>
-                    <td class="p-3.5 border-r border-white/10 text-slate-200">${escapeHtml(res.feedback)}</td>
-                    <td class="p-3.5 text-slate-300">${escapeHtml(res.teacherAdvice)}</td>
+                    <td class="p-3 text-center border-r border-white/10 font-bold text-amber-300 text-base">${escapeHtml(res.totalScore)} / 12</td>
+                    <td class="p-3 border-r border-white/10 text-slate-200">${escapeHtml(res.mistakes)}</td>
+                    <td class="p-3 border-r border-white/10 text-slate-200">${escapeHtml(res.feedback)}</td>
+                    <td class="p-3 text-slate-300">${escapeHtml(res.teacherAdvice)}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('classMistakesSummaryText').textContent =
-                summaryLines.length > 0 ? summaryLines.join('
-') : 'Системних помилок не виявлено.';
-            document.getElementById('resultsCount').textContent = String(state.gradingResults.length);
+            document.getElementById('classMistakesSummaryText').textContent = summary.length ? summary.join('\n') : 'Типових помилок не виявлено.';
         }
 
         function copyTableForExcel() {
-            if (!state.gradingResults || state.gradingResults.length === 0) return;
-            let tsv = "Клас	Прізвище та ім'я	Оцінка (з 12)	Розбір помилок	Фідбек учню	Порада вчителю
-";
+            if (!state.gradingResults.length) return;
+            let tsv = "Клас\tПрізвище та ім'я\tОцінка (з 12)\tРозбір помилок\tФідбек учню\tПорада вчителю\n";
             state.gradingResults.forEach(r => {
-                tsv += `${state.selectedClass}	${r.studentName}	${r.totalScore}	${r.mistakes}	${r.feedback}	${r.teacherAdvice}
-`;
+                tsv += `${state.selectedClass}\t${r.studentName}\t${r.totalScore}\t${r.mistakes}\t${r.feedback}\t${r.teacherAdvice}\n`;
             });
-
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(tsv).then(() => {
-                    showAlert('Таблицю скопійовано! Можна вставити в Google Таблиці або Excel.', 'success');
-                }).catch(() => fallbackCopy(tsv));
-            } else {
-                fallbackCopy(tsv);
-            }
-        }
-
-        function fallbackCopy(tsv) {
-            const textarea = document.createElement('textarea');
-            textarea.value = tsv;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showAlert('Таблицю скопійовано! Можна вставити в Google Таблиці або Excel.', 'success');
+            navigator.clipboard.writeText(tsv).then(() => {
+                showAlert('Таблицю скопійовано у буфер. Вставляйте у Google Таблиці (Ctrl+V).', 'success');
+            });
         }
 
         function exportCSV() {
-            if (!state.gradingResults || state.gradingResults.length === 0) return;
-            let csv = "﻿Клас,Прізвище та ім'я,Оцінка (з 12),Розбір помилок,Фідбек учню,Порада вчителю
-";
+            if (!state.gradingResults.length) return;
+            let csv = "\uFEFFКлас,Прізвище та ім'я,Оцінка (з 12),Розбір помилок,Фідбек учню,Порада вчителю\n";
             state.gradingResults.forEach(r => {
                 const cols = [state.selectedClass, r.studentName, r.totalScore, r.mistakes, r.feedback, r.teacherAdvice]
                     .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`);
-                csv += cols.join(',') + '
-';
+                csv += cols.join(',') + '\n';
             });
-
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', `Результати_${state.selectedClass}.csv`);
-            document.body.appendChild(link);
+            link.download = `Результати_${state.selectedClass}.csv`;
             link.click();
-            document.body.removeChild(link);
+        }
+
+        function exportDOCX() {
+            if (!state.gradingResults.length) return;
+
+            let htmlDoc = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Результати перевірки</title>
+                <style>
+                    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.3; }
+                    h2 { color: #1A365D; }
+                    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+                    th, td { border: 1px solid #CBD5E0; padding: 8px; text-align: left; vertical-align: top; }
+                    th { background-color: #EDF2F7; font-weight: bold; }
+                    .summary { background-color: #FEFCBF; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+                </style>
+                </head>
+                <body>
+                    <h2>Звіт перевірки робіт класу: ${escapeHtml(state.selectedClass)}</h2>
+                    ${state.taskTopic ? `<p><b>Тема:</b> ${escapeHtml(state.taskTopic)}</p>` : ''}
+                    
+                    <div class="summary">
+                        <b>Загальні поради вчителю на наступний урок:</b><br/>
+                        ${document.getElementById('classMistakesSummaryText').innerText.replace(/\n/g, '<br/>')}
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Клас</th>
+                                <th>Прізвище та ім'я</th>
+                                <th>Оцінка (з 12)</th>
+                                <th>Розбір помилок</th>
+                                <th>Фідбек учню</th>
+                                <th>Порада вчителю</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            state.gradingResults.forEach(r => {
+                htmlDoc += `
+                    <tr>
+                        <td>${escapeHtml(state.selectedClass)}</td>
+                        <td><b>${escapeHtml(r.studentName)}</b></td>
+                        <td style="text-align:center; font-weight:bold;">${r.totalScore}</td>
+                        <td>${escapeHtml(r.mistakes)}</td>
+                        <td>${escapeHtml(r.feedback)}</td>
+                        <td>${escapeHtml(r.teacherAdvice)}</td>
+                    </tr>
+                `;
+            });
+
+            htmlDoc += `</tbody></table></body></html>`;
+
+            const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Результати_${state.selectedClass}.doc`;
+            link.click();
+            showAlert('Файл Word (.doc/.docx) успішно згенеровано та завантажено.', 'success');
         }
 
         function showAlert(msg, type = 'info') {
-            const alertBox = document.getElementById('alertBox');
-            const alertText = document.getElementById('alertText');
-            const alertIcon = document.getElementById('alertIcon');
-
-            alertText.textContent = msg;
-            alertIcon.className = type === 'success'
-                ? 'ph-duotone ph-check-circle text-2xl shrink-0 text-emerald-400 mt-0.5'
-                : type === 'warning'
-                    ? 'ph-duotone ph-warning text-2xl shrink-0 text-amber-400 mt-0.5'
-                    : 'ph-duotone ph-info text-2xl shrink-0 text-sky-400 mt-0.5';
-
-            alertBox.classList.remove('hidden');
+            const box = document.getElementById('alertBox');
+            document.getElementById('alertText').textContent = msg;
+            box.classList.remove('hidden');
         }
-
-        function closeAlert() {
-            document.getElementById('alertBox').classList.add('hidden');
-        }
-
-        function escapeHtml(str) {
-            return String(str ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
+        function closeAlert() { document.getElementById('alertBox').classList.add('hidden'); }
+        function escapeHtml(str) { return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     </script>
 </body>
 </html>
