@@ -15,7 +15,7 @@
     <script type="importmap">
     {
         "imports": {
-            "@google/genai": "https://cdn.jsdelivr.net/npm/@google/genai@3.0.0/+esm"
+            "@google/genai": "https://cdn.jsdelivr.net/npm/@google/genai@2.1.0/+esm"
         }
     }
     </script>
@@ -169,7 +169,8 @@
                     <div class="liquid-glass p-5 space-y-4 lg:col-span-2 flex flex-col justify-between">
                         <h2 class="text-lg font-bold text-white">Фото завдання</h2>
                         <div id="taskDropZone" class="rounded-xl border border-dashed border-amber-300/40 bg-black/40 p-5 text-center">
-                            <input type="file" id="taskFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleTaskFileSelect(event)">
+                            <!-- Виправлено: прибрано capture="environment" для доступу до галереї -->
+                            <input type="file" id="taskFileInput" accept="image/*" class="hidden" onchange="handleTaskFileSelect(event)">
                             <div class="flex flex-wrap justify-center gap-3">
                                 <button onclick="document.getElementById('taskFileInput').click()" class="glass-btn-gold px-4 py-2.5 text-xs flex items-center space-x-1.5">
                                     <i class="ph-bold ph-upload-simple text-base"></i><span>Обрати файл</span>
@@ -229,7 +230,8 @@
                                 <i class="ph-duotone ph-camera text-sm text-amber-300"></i><span>Камера</span>
                             </button>
                         </div>
-                        <input type="file" id="studentsFileInput" accept="image/*" capture="environment" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
+                        <!-- Виправлено: прибрано capture="environment" для доступу до галереї -->
+                        <input type="file" id="studentsFileInput" accept="image/*" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
                     </div>
                     <div id="studentFilesList" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
                     <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="glass-btn-gold w-full py-3.5 text-xs sm:text-sm flex items-center justify-center space-x-2">
@@ -288,7 +290,7 @@
             <button onclick="closeLiveCamera()" class="text-slate-300 hover:text-white p-2"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="relative flex-1 my-3 bg-black/70 rounded-2xl overflow-hidden flex items-center justify-center border border-white/20">
-            <video id="cameraStreamVideo" autoplay playsinline muted></video>
+            <video id="cameraStreamVideo" autoplay playsinline muted class="w-full h-full object-contain"></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
         </div>
         <div class="flex justify-center gap-3 pb-2">
@@ -315,7 +317,8 @@
     </div>
 
     <script type="module">
-        const MODEL_NAME = 'gemini-3.1-flash-lite';
+        // Виправлено: повертаємо актуальну модель, яка точно працює
+        const MODEL_NAME = 'gemini-2.5-flash';
 
         let state = {
             apiKey: localStorage.getItem('gemini_api_key') || '',
@@ -334,48 +337,51 @@
 
         let GoogleGenAI = null;
 
-        async function initApp() {
+        // === РЕЄСТРАЦІЯ ФУНКЦІЙ (виконується синхронно) ===
+        window.submitGateKey = submitGateKey;
+        window.openApiKeyModal = openApiKeyModal;
+        window.closeApiKeyModal = closeApiKeyModal;
+        window.saveApiKeyModal = saveApiKeyModal;
+        window.setStep = setStep;
+        window.openLiveCamera = openLiveCamera;
+        window.closeLiveCamera = closeLiveCamera;
+        window.captureCameraSnapshot = captureCameraSnapshot;
+        window.handleTaskFileSelect = handleTaskFileSelect;
+        window.removeTaskImage = removeTaskImage;
+        window.generateKeyFromTask = generateKeyFromTask;
+        window.updateKeyQuestion = updateKeyQuestion;
+        window.deleteKeyQuestion = deleteKeyQuestion;
+        window.addNewQuestionToKey = addNewQuestionToKey;
+        window.confirmKeyAndProceed = confirmKeyAndProceed;
+        window.handleStudentFilesSelect = handleStudentFilesSelect;
+        window.removeStudentFile = removeStudentFile;
+        window.startBatchGrading = startBatchGrading;
+        window.copyTableForExcel = copyTableForExcel;
+        window.exportCSV = exportCSV;
+        window.exportDOCX = exportDOCX;
+        window.closeAlert = closeAlert;
+
+        // === ІНІЦІАЛІЗАЦІЯ ІНТЕРФЕЙСУ ===
+        updateApiKeyBadge();
+        if (state.apiKey) {
+            showWorkflow();
+        } else {
+            showAuthGate();
+        }
+
+        // === АСИНХРОННЕ ЗАВАНТАЖЕННЯ SDK ===
+        (async () => {
             try {
                 const module = await import('@google/genai');
                 GoogleGenAI = module.GoogleGenAI;
+                if (state.apiKey) initGenAI();
             } catch (e) {
                 console.error('SDK import error:', e);
+                showAlert('Помилка завантаження AI. Перевірте інтернет.', 'warning');
             }
+        })();
 
-            // Прикріплюємо всі функції до window
-            window.submitGateKey = submitGateKey;
-            window.openApiKeyModal = openApiKeyModal;
-            window.closeApiKeyModal = closeApiKeyModal;
-            window.saveApiKeyModal = saveApiKeyModal;
-            window.setStep = setStep;
-            window.openLiveCamera = openLiveCamera;
-            window.closeLiveCamera = closeLiveCamera;
-            window.captureCameraSnapshot = captureCameraSnapshot;
-            window.handleTaskFileSelect = handleTaskFileSelect;
-            window.removeTaskImage = removeTaskImage;
-            window.generateKeyFromTask = generateKeyFromTask;
-            window.updateKeyQuestion = updateKeyQuestion;
-            window.deleteKeyQuestion = deleteKeyQuestion;
-            window.addNewQuestionToKey = addNewQuestionToKey;
-            window.confirmKeyAndProceed = confirmKeyAndProceed;
-            window.handleStudentFilesSelect = handleStudentFilesSelect;
-            window.removeStudentFile = removeStudentFile;
-            window.startBatchGrading = startBatchGrading;
-            window.copyTableForExcel = copyTableForExcel;
-            window.exportCSV = exportCSV;
-            window.exportDOCX = exportDOCX;
-            window.closeAlert = closeAlert;
-
-            updateApiKeyBadge();
-
-            if (state.apiKey) {
-                initGenAI();
-                showWorkflow();
-            } else {
-                showAuthGate();
-            }
-        }
-
+        // === ФУНКЦІЇ ===
         function showAuthGate() {
             document.getElementById('authGateSection').classList.remove('hidden');
             document.getElementById('appWorkflow').classList.add('hidden');
@@ -550,6 +556,11 @@
                 return;
             }
 
+            if (!state.genAI) {
+                showAlert('AI ще не готовий. Зачекайте 1-2 секунди і спробуйте знову.', 'info');
+                return;
+            }
+
             const btn = document.getElementById('btnGenerateKey');
             btn.disabled = true;
             btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i><span>Аналіз...</span>`;
@@ -590,10 +601,13 @@
                 showAlert('Ключ готовий. Перевірте та підтвердіть.', 'success');
             } catch (err) {
                 console.error(err);
-                if (err.message?.includes('not found') || err.message?.includes('deprecated')) {
+                // Покращена обробка помилок
+                if (err.message?.includes('API key not valid')) {
+                    showAlert('API ключ недійсний. Перевірте його в налаштуваннях.', 'warning');
+                } else if (err.message?.includes('not found') || err.message?.includes('deprecated')) {
                     showAlert('Модель AI тимчасово недоступна. Спробуйте пізніше.', 'warning');
                 } else {
-                    showAlert('Помилка: ' + err.message, 'warning');
+                    showAlert('Помилка AI: ' + (err.message || 'Невідома помилка'), 'warning');
                 }
             } finally {
                 btn.disabled = false;
@@ -689,6 +703,11 @@
 
         async function startBatchGrading() {
             if (!state.studentFiles.length) return;
+            if (!state.genAI) {
+                showAlert('AI ще не готовий. Зачекайте 1-2 секунди.', 'info');
+                return;
+            }
+
             document.getElementById('gradingLoader').classList.remove('hidden');
             document.getElementById('resultsContainer').classList.add('hidden');
 
@@ -857,9 +876,6 @@ ${keyPromptStr}
         }
         function closeAlert() { document.getElementById('alertBox').classList.add('hidden'); }
         function escapeHtml(str) { return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-
-        // Запуск
-        initApp();
     </script>
 </body>
 </html>
