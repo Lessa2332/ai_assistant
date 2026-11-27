@@ -78,6 +78,16 @@
         .step-indicator {
             transition: all 0.2s ease;
         }
+        .file-checkbox {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: #FFD43B;
+            cursor: pointer;
+            z-index: 10;
+        }
         @media print {
             .no-print, .ambient-bg { display: none !important; }
             body { background: #FFF !important; color: #000 !important; }
@@ -231,7 +241,21 @@
                         </div>
                         <input type="file" id="studentsFileInput" accept="image/*" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
                     </div>
+                    
+                    <!-- Інструкція по групуванню -->
+                    <div class="text-[10px] text-slate-400 bg-white/5 p-2 rounded-lg">
+                        <i class="ph-bold ph-info text-amber-300"></i> 
+                        Якщо учень здав роботу на кількох фото, позначте їх чекбоксами та натисніть "Об'єднати в одну роботу".
+                    </div>
+
                     <div id="studentFilesList" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                    
+                    <div id="groupActions" class="hidden flex gap-2">
+                        <button onclick="groupSelectedFiles()" class="glass-btn-gold px-4 py-2 text-xs flex-1">
+                            <i class="ph-bold ph-link text-sm"></i> Об'єднати вибрані в одну роботу
+                        </button>
+                    </div>
+
                     <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="glass-btn-gold w-full py-3.5 text-xs sm:text-sm flex items-center justify-center space-x-2">
                         <i class="ph-bold ph-lightning text-lg"></i><span>Почати перевірку</span>
                     </button>
@@ -278,7 +302,6 @@
                         </div>
                     </div>
 
-                    <!-- Кнопка для додавання нової партії робіт -->
                     <div class="no-print text-center">
                         <button onclick="addMoreWorks()" class="glass-btn-lens px-6 py-3 text-sm inline-flex items-center space-x-2">
                             <i class="ph-bold ph-plus-circle text-lg text-amber-300"></i>
@@ -342,8 +365,8 @@
             taskImageBase64: null,
             taskImageType: null,
             keyQuestions: [],
-            studentFiles: [], // поточна партія на перевірку
-            gradingResults: [], // всі перевірені роботи (накопичувально)
+            studentFiles: [], // тепер це масив об'єктів { name, pages: [{base64, mimeType}], previewUrl }
+            gradingResults: [], 
             cameraStream: null,
             cameraTargetMode: null,
             genAI: null
@@ -383,10 +406,11 @@
             window.exportDOCX = exportDOCX;
             window.closeAlert = closeAlert;
             window.addMoreWorks = addMoreWorks;
+            window.groupSelectedFiles = groupSelectedFiles;
+            window.toggleFileSelection = toggleFileSelection;
 
             updateApiKeyBadge();
 
-            // Якщо ключ вже є - показуємо робочий екран, інакше - екран входу
             if (state.apiKey) {
                 if (initGenAI()) {
                     showWorkflow();
@@ -401,14 +425,13 @@
         function showAuthGate() {
             document.getElementById('authGateSection').classList.remove('hidden');
             document.getElementById('appWorkflow').classList.add('hidden');
-            // Завжди очищаємо поле при показі екрану входу
             document.getElementById('gateApiKeyInput').value = '';
         }
 
         function showWorkflow() {
             document.getElementById('authGateSection').classList.add('hidden');
             document.getElementById('appWorkflow').classList.remove('hidden');
-            setStep(1); // Завжди починаємо з першого кроку
+            setStep(1);
         }
 
         function submitGateKey() {
@@ -431,10 +454,7 @@
             if (!state.apiKey || !GoogleGenAI) return false;
             try {
                 const cleanKey = state.apiKey.replace(/[\s"']/g, '').trim();
-                if (!cleanKey) {
-                    console.error('API Key is empty after cleaning');
-                    return false;
-                }
+                if (!cleanKey) return false;
                 state.genAI = new GoogleGenAI({ apiKey: cleanKey });
                 return true;
             } catch (e) {
@@ -465,7 +485,7 @@
                 showWorkflow();
                 showAlert('Ключ оновлено.', 'success');
             } else {
-                showAlert('Невірний ключ. Спробуйте ще раз.', 'warning');
+                showAlert('Невірний ключ.', 'warning');
             }
         }
 
@@ -542,11 +562,12 @@
                 document.getElementById('taskDropZone').classList.add('hidden');
                 document.getElementById('taskPreviewContainer').classList.remove('hidden');
             } else {
+                // Додаємо як нову роботу з однією сторінкою
                 state.studentFiles.push({
-                    name: `Зошит_${state.studentFiles.length + 1}.jpg`,
-                    base64: dataUrl.split(',')[1],
-                    mimeType: 'image/jpeg',
-                    previewUrl: dataUrl
+                    name: `Робота_${state.studentFiles.length + 1}`,
+                    pages: [{ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' }],
+                    previewUrl: dataUrl,
+                    selected: false
                 });
                 renderStudentFilesList();
             }
@@ -652,14 +673,10 @@ ${EVALUATION_CRITERIA}
                 document.getElementById('currentBatchClass').textContent = state.selectedClass;
                 renderKeyQuestions();
                 setStep(2);
-                showAlert('Ключ готовий. Перевірте та підтвердіть.', 'success');
+                showAlert('Ключ готовий.', 'success');
             } catch (err) {
                 console.error(err);
-                if (err.message?.includes('not found') || err.message?.includes('deprecated')) {
-                    showAlert('Модель AI тимчасово недоступна. Спробуйте пізніше.', 'warning');
-                } else {
-                    showAlert('Помилка: ' + err.message, 'warning');
-                }
+                showAlert('Помилка: ' + err.message, 'warning');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="ph-bold ph-sparkle text-lg"></i><span>Згенерувати ключ</span>`;
@@ -710,7 +727,7 @@ ${EVALUATION_CRITERIA}
         function confirmKeyAndProceed() {
             if (!state.keyQuestions.length) return;
             setStep(3);
-            showAlert('Завантажте роботи учнів (можна частинами).', 'success');
+            showAlert('Завантажте роботи учнів.', 'success');
         }
 
         function handleStudentFilesSelect(e) {
@@ -742,9 +759,9 @@ ${EVALUATION_CRITERIA}
                         
                         state.studentFiles.push({
                             name: file.name,
-                            base64: compressedDataUrl.split(',')[1],
-                            mimeType: 'image/jpeg',
-                            previewUrl: compressedDataUrl
+                            pages: [{ base64: compressedDataUrl.split(',')[1], mimeType: 'image/jpeg' }],
+                            previewUrl: compressedDataUrl,
+                            selected: false
                         });
                         renderStudentFilesList();
                     };
@@ -758,17 +775,69 @@ ${EVALUATION_CRITERIA}
         function renderStudentFilesList() {
             const container = document.getElementById('studentFilesList');
             container.innerHTML = '';
+            let hasSelected = false;
+
             state.studentFiles.forEach((file, idx) => {
+                if (file.selected) hasSelected = true;
                 const card = document.createElement('div');
-                card.className = 'relative liquid-glass p-1.5 text-center';
+                card.className = `relative liquid-glass p-1.5 text-center ${file.selected ? 'ring-2 ring-amber-400' : ''}`;
                 card.innerHTML = `
+                    <input type="checkbox" class="file-checkbox" ${file.selected ? 'checked' : ''} onchange="toggleFileSelection(${idx})">
                     <img src="${file.previewUrl}" class="h-16 w-full object-cover rounded-md">
                     <div class="text-[9px] text-slate-400 truncate mt-0.5">${escapeHtml(file.name)}</div>
+                    <div class="text-[8px] text-amber-300 font-bold">${file.pages.length} стор.</div>
                     <button onclick="removeStudentFile(${idx})" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">×</button>
                 `;
                 container.appendChild(card);
             });
+
             document.getElementById('btnStartGrading').disabled = state.studentFiles.length === 0;
+            document.getElementById('groupActions').classList.toggle('hidden', !hasSelected);
+        }
+
+        function toggleFileSelection(idx) {
+            state.studentFiles[idx].selected = !state.studentFiles[idx].selected;
+            renderStudentFilesList();
+        }
+
+        function groupSelectedFiles() {
+            const selectedIndices = state.studentFiles
+                .map((f, i) => f.selected ? i : -1)
+                .filter(i => i !== -1);
+
+            if (selectedIndices.length < 2) {
+                showAlert('Виберіть хоча б 2 файли для об\'єднання.', 'warning');
+                return;
+            }
+
+            // Беремо перший вибраний файл як основу
+            const firstIdx = selectedIndices[0];
+            const baseFile = state.studentFiles[firstIdx];
+            
+            // Збираємо всі сторінки з вибраних файлів
+            const allPages = [];
+            selectedIndices.forEach(idx => {
+                allPages.push(...state.studentFiles[idx].pages);
+            });
+
+            // Створюємо новий об'єднаний файл
+            const mergedFile = {
+                name: `Робота (${allPages.length} стор.)`,
+                pages: allPages,
+                previewUrl: baseFile.previewUrl, // показуємо першу сторінку як прев'ю
+                selected: false
+            };
+
+            // Видаляємо старі файли (з кінця, щоб не збити індекси)
+            selectedIndices.sort((a, b) => b - a).forEach(idx => {
+                state.studentFiles.splice(idx, 1);
+            });
+
+            // Додаємо об'єднаний файл на початок
+            state.studentFiles.unshift(mergedFile);
+            
+            renderStudentFilesList();
+            showAlert(`Об'єднано ${selectedIndices.length} файлів в одну роботу.`, 'success');
         }
 
         function removeStudentFile(idx) {
@@ -804,15 +873,15 @@ ${EVALUATION_CRITERIA}
             const newResults = [];
             for (const file of state.studentFiles) {
                 try {
+                    // Формуємо parts для запиту: всі сторінки роботи
+                    const parts = [{ text: prompt }];
+                    file.pages.forEach(page => {
+                        parts.push({ inlineData: { mimeType: page.mimeType, data: page.base64 } });
+                    });
+
                     const response = await state.genAI.models.generateContent({
                         model: MODEL_NAME,
-                        contents: [{
-                            role: 'user',
-                            parts: [
-                                { text: prompt },
-                                { inlineData: { mimeType: file.mimeType, data: file.base64 } }
-                            ]
-                        }],
+                        contents: [{ role: 'user', parts: parts }],
                         config: { responseMimeType: 'application/json' }
                     });
 
@@ -838,18 +907,15 @@ ${EVALUATION_CRITERIA}
                 }
             }
 
-            // Додаємо нові результати до вже існуючих (накопичувально)
             state.gradingResults = state.gradingResults.concat(newResults);
-            
-            // Очищаємо поточну партію файлів
             state.studentFiles = [];
             
             renderResultsTable();
-            renderStudentFilesList(); // очистить список файлів на екрані
+            renderStudentFilesList();
             
             document.getElementById('gradingLoader').classList.add('hidden');
             document.getElementById('resultsContainer').classList.remove('hidden');
-            showAlert(`Перевірено: ${newResults.length} робіт. Всього в таблиці: ${state.gradingResults.length}.`, 'success');
+            showAlert(`Перевірено: ${newResults.length} робіт. Всього: ${state.gradingResults.length}.`, 'success');
         }
 
         function renderResultsTable() {
@@ -886,13 +952,11 @@ ${EVALUATION_CRITERIA}
         }
 
         function addMoreWorks() {
-            // Повертаємось до кроку 3 (перевірка), щоб додати нові фото
             setStep(3);
             document.getElementById('resultsContainer').classList.add('hidden');
             document.getElementById('gradingLoader').classList.add('hidden');
-            // Прокручуємо до блоку завантаження
             document.querySelector('#step3Container .liquid-glass').scrollIntoView({ behavior: 'smooth' });
-            showAlert('Додайте нові фото робіт і натисніть "Почати перевірку".', 'info');
+            showAlert('Додайте нові фото робіт.', 'info');
         }
 
         function copyTableForExcel() {
@@ -902,7 +966,7 @@ ${EVALUATION_CRITERIA}
                 tsv += `${state.selectedClass}\t${r.studentName}\t${r.totalScore}\t${r.level}\t${r.mistakes}\t${r.feedback}\t${r.teacherAdvice}\n`;
             });
             navigator.clipboard.writeText(tsv).then(() => {
-                showAlert('Скопійовано. Вставте в Таблиці (Ctrl+V).', 'success');
+                showAlert('Скопійовано.', 'success');
             });
         }
 
@@ -980,7 +1044,6 @@ ${EVALUATION_CRITERIA}
         function closeAlert() { document.getElementById('alertBox').classList.add('hidden'); }
         function escapeHtml(str) { return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
-        // Запуск
         initApp();
     </script>
 </body>
