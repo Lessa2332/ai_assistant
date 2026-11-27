@@ -118,19 +118,19 @@
             <button onclick="closeAlert()" class="text-slate-400 hover:text-white p-1"><i class="ph-bold ph-x text-lg"></i></button>
         </div>
 
-        <!-- Auth Gate -->
+        <!-- Auth Gate (початковий екран) -->
         <section id="authGateSection" class="liquid-glass p-8 max-w-md mx-auto text-center space-y-5 my-8">
             <div class="w-14 h-14 rounded-2xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center mx-auto text-amber-300">
                 <i class="ph-duotone ph-lock-key text-2xl"></i>
             </div>
             <div>
-                <h2 class="text-xl font-bold text-white">Введіть Gemini API Key</h2>
+                <h2 class="text-xl font-bold text-white">Крок 1: Введіть Gemini API Key</h2>
                 <p class="text-xs text-slate-400 mt-1">Формати: AQ... або AIza...</p>
             </div>
             <input type="password" id="gateApiKeyInput" placeholder="AQ... або AIza..." class="glass-input w-full px-4 text-sm font-mono text-center">
             <button onclick="submitGateKey()" class="glass-btn-gold w-full py-3 text-sm flex items-center justify-center space-x-2">
                 <i class="ph-bold ph-check text-lg"></i>
-                <span>Увійти</span>
+                <span>Увійти та перейти до завдання</span>
             </button>
         </section>
 
@@ -223,7 +223,7 @@
                         </div>
                         <div class="flex gap-2">
                             <button onclick="document.getElementById('studentsFileInput').click()" class="glass-btn-gold px-3.5 py-2 text-xs flex items-center space-x-1">
-                                <i class="ph-bold ph-images text-sm"></i><span>3-5 робіт</span>
+                                <i class="ph-bold ph-images text-sm"></i><span>Додати роботи</span>
                             </button>
                             <button onclick="openLiveCamera('student')" class="glass-btn-lens px-3.5 py-2 text-xs flex items-center space-x-1">
                                 <i class="ph-duotone ph-camera text-sm text-amber-300"></i><span>Камера</span>
@@ -276,6 +276,14 @@
                                 <tbody id="studentResultsTableBody" class="divide-y divide-white/10 text-xs text-slate-200"></tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <!-- Кнопка для додавання нової партії робіт -->
+                    <div class="no-print text-center">
+                        <button onclick="addMoreWorks()" class="glass-btn-lens px-6 py-3 text-sm inline-flex items-center space-x-2">
+                            <i class="ph-bold ph-plus-circle text-lg text-amber-300"></i>
+                            <span>Додати ще роботи на перевірку</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -334,8 +342,8 @@
             taskImageBase64: null,
             taskImageType: null,
             keyQuestions: [],
-            studentFiles: [],
-            gradingResults: [],
+            studentFiles: [], // поточна партія на перевірку
+            gradingResults: [], // всі перевірені роботи (накопичувально)
             cameraStream: null,
             cameraTargetMode: null,
             genAI: null
@@ -374,12 +382,17 @@
             window.exportCSV = exportCSV;
             window.exportDOCX = exportDOCX;
             window.closeAlert = closeAlert;
+            window.addMoreWorks = addMoreWorks;
 
             updateApiKeyBadge();
 
+            // Якщо ключ вже є - показуємо робочий екран, інакше - екран входу
             if (state.apiKey) {
-                initGenAI();
-                showWorkflow();
+                if (initGenAI()) {
+                    showWorkflow();
+                } else {
+                    showAuthGate();
+                }
             } else {
                 showAuthGate();
             }
@@ -388,22 +401,30 @@
         function showAuthGate() {
             document.getElementById('authGateSection').classList.remove('hidden');
             document.getElementById('appWorkflow').classList.add('hidden');
+            // Завжди очищаємо поле при показі екрану входу
+            document.getElementById('gateApiKeyInput').value = '';
         }
 
         function showWorkflow() {
             document.getElementById('authGateSection').classList.add('hidden');
             document.getElementById('appWorkflow').classList.remove('hidden');
+            setStep(1); // Завжди починаємо з першого кроку
         }
 
         function submitGateKey() {
             const key = document.getElementById('gateApiKeyInput').value.trim();
             if (!key) { showAlert('Введіть API Key', 'warning'); return; }
+            
             state.apiKey = key;
             localStorage.setItem('gemini_api_key', key);
             updateApiKeyBadge();
-            initGenAI();
-            showWorkflow();
-            showAlert('Готово. Введіть клас і завантажте завдання.', 'success');
+            
+            if (initGenAI()) {
+                showWorkflow();
+                showAlert('Ключ збережено. Переходимо до завдання.', 'success');
+            } else {
+                showAlert('Не вдалося ініціалізувати AI. Перевірте ключ.', 'warning');
+            }
         }
 
         function initGenAI() {
@@ -439,9 +460,13 @@
             state.apiKey = val;
             localStorage.setItem('gemini_api_key', val);
             updateApiKeyBadge();
-            initGenAI();
-            closeApiKeyModal();
-            showWorkflow();
+            if (initGenAI()) {
+                closeApiKeyModal();
+                showWorkflow();
+                showAlert('Ключ оновлено.', 'success');
+            } else {
+                showAlert('Невірний ключ. Спробуйте ще раз.', 'warning');
+            }
         }
 
         function setStep(stepNum) {
@@ -685,7 +710,7 @@ ${EVALUATION_CRITERIA}
         function confirmKeyAndProceed() {
             if (!state.keyQuestions.length) return;
             setStep(3);
-            showAlert('Завантажте 3-5 робіт учнів.', 'success');
+            showAlert('Завантажте роботи учнів (можна частинами).', 'success');
         }
 
         function handleStudentFilesSelect(e) {
@@ -776,7 +801,7 @@ ${EVALUATION_CRITERIA}
   "teacherAdvice": "Що опрацювати на уроці"
 }`;
 
-            const results = [];
+            const newResults = [];
             for (const file of state.studentFiles) {
                 try {
                     const response = await state.genAI.models.generateContent({
@@ -792,7 +817,7 @@ ${EVALUATION_CRITERIA}
                     });
 
                     const parsed = JSON.parse(response.text);
-                    results.push({
+                    newResults.push({
                         studentName: parsed.studentName || file.name,
                         totalScore: Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1))),
                         level: parsed.level || 'Не визначено',
@@ -802,7 +827,7 @@ ${EVALUATION_CRITERIA}
                     });
                 } catch (e) {
                     console.error(e);
-                    results.push({
+                    newResults.push({
                         studentName: file.name,
                         totalScore: 0,
                         level: 'Помилка',
@@ -813,11 +838,18 @@ ${EVALUATION_CRITERIA}
                 }
             }
 
-            state.gradingResults = results;
+            // Додаємо нові результати до вже існуючих (накопичувально)
+            state.gradingResults = state.gradingResults.concat(newResults);
+            
+            // Очищаємо поточну партію файлів
+            state.studentFiles = [];
+            
             renderResultsTable();
+            renderStudentFilesList(); // очистить список файлів на екрані
+            
             document.getElementById('gradingLoader').classList.add('hidden');
             document.getElementById('resultsContainer').classList.remove('hidden');
-            showAlert(`Перевірено: ${results.length} робіт.`, 'success');
+            showAlert(`Перевірено: ${newResults.length} робіт. Всього в таблиці: ${state.gradingResults.length}.`, 'success');
         }
 
         function renderResultsTable() {
@@ -851,6 +883,16 @@ ${EVALUATION_CRITERIA}
             });
 
             document.getElementById('classMistakesSummaryText').textContent = summary.length ? summary.join('\n') : 'Типових помилок не виявлено.';
+        }
+
+        function addMoreWorks() {
+            // Повертаємось до кроку 3 (перевірка), щоб додати нові фото
+            setStep(3);
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('gradingLoader').classList.add('hidden');
+            // Прокручуємо до блоку завантаження
+            document.querySelector('#step3Container .liquid-glass').scrollIntoView({ behavior: 'smooth' });
+            showAlert('Додайте нові фото робіт і натисніть "Почати перевірку".', 'info');
         }
 
         function copyTableForExcel() {
