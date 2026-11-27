@@ -169,7 +169,7 @@
                     <div class="liquid-glass p-5 space-y-4 lg:col-span-2 flex flex-col justify-between">
                         <h2 class="text-lg font-bold text-white">Фото завдання</h2>
                         <div id="taskDropZone" class="rounded-xl border border-dashed border-amber-300/40 bg-black/40 p-5 text-center">
-                            <input type="file" id="taskFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleTaskFileSelect(event)">
+                            <input type="file" id="taskFileInput" accept="image/*" class="hidden" onchange="handleTaskFileSelect(event)">
                             <div class="flex flex-wrap justify-center gap-3">
                                 <button onclick="document.getElementById('taskFileInput').click()" class="glass-btn-gold px-4 py-2.5 text-xs flex items-center space-x-1.5">
                                     <i class="ph-bold ph-upload-simple text-base"></i><span>Обрати файл</span>
@@ -229,7 +229,7 @@
                                 <i class="ph-duotone ph-camera text-sm text-amber-300"></i><span>Камера</span>
                             </button>
                         </div>
-                        <input type="file" id="studentsFileInput" accept="image/*" capture="environment" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
+                        <input type="file" id="studentsFileInput" accept="image/*" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
                     </div>
                     <div id="studentFilesList" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
                     <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="glass-btn-gold w-full py-3.5 text-xs sm:text-sm flex items-center justify-center space-x-2">
@@ -267,6 +267,7 @@
                                         <th class="p-2.5 w-16 text-center border-r border-white/10">Клас</th>
                                         <th class="p-2.5 w-44 border-r border-white/10">Учень</th>
                                         <th class="p-2.5 w-20 text-center border-r border-white/10">Оцінка</th>
+                                        <th class="p-2.5 w-24 text-center border-r border-white/10">Рівень</th>
                                         <th class="p-2.5 border-r border-white/10">Помилки</th>
                                         <th class="p-2.5 border-r border-white/10">Фідбек</th>
                                         <th class="p-2.5 w-48">Порада</th>
@@ -316,6 +317,14 @@
 
     <script type="module">
         const MODEL_NAME = 'gemini-3.1-flash-lite';
+        
+        const EVALUATION_CRITERIA = `
+Критерії оцінювання з географії (12-бальна шкала):
+1-3 бали (Початковий): учень розпізнає об'єкти, відповідає на прості запитання з суттєвими помилками, працює лише за зразком та під наглядом.
+4-6 балів (Середній): відтворює основну інформацію, виконує типові репродуктивні завдання за алгоритмом, потребує допомоги вчителя.
+7-9 балів (Достатній): знаходить інформацію в різних джерелах, встановлює причинно-наслідкові зв'язки, виконує практичні роботи, здатен аналізувати.
+10-12 балів (Високий): критично аналізує, прогнозує, висуває гіпотези, виконує творчі/дослідницькі завдання, працює автономно.
+`;
 
         let state = {
             apiKey: localStorage.getItem('gemini_api_key') || '',
@@ -400,10 +409,15 @@
         function initGenAI() {
             if (!state.apiKey || !GoogleGenAI) return false;
             try {
-                state.genAI = new GoogleGenAI({ apiKey: state.apiKey });
+                const cleanKey = state.apiKey.replace(/[\s"']/g, '').trim();
+                if (!cleanKey) {
+                    console.error('API Key is empty after cleaning');
+                    return false;
+                }
+                state.genAI = new GoogleGenAI({ apiKey: cleanKey });
                 return true;
             } catch (e) {
-                console.error(e);
+                console.error('Init GenAI error:', e);
                 return false;
             }
         }
@@ -440,7 +454,6 @@
             document.getElementById('step2Container').classList.toggle('hidden', stepNum !== 2);
             document.getElementById('step3Container').classList.toggle('hidden', stepNum !== 3);
 
-            // Оновлюємо індикатор
             for (let i = 1; i <= 3; i++) {
                 const el = document.getElementById('stepIndicator' + i);
                 if (i === stepNum) {
@@ -517,13 +530,38 @@
         function handleTaskFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
+            
             const reader = new FileReader();
             reader.onload = function(evt) {
-                state.taskImageBase64 = evt.target.result.split(',')[1];
-                state.taskImageType = file.type || 'image/jpeg';
-                document.getElementById('taskPreviewImg').src = evt.target.result;
-                document.getElementById('taskDropZone').classList.add('hidden');
-                document.getElementById('taskPreviewContainer').classList.remove('hidden');
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxSize = 1600;
+                    
+                    if (width > height && width > maxSize) {
+                        height *= maxSize / width;
+                        width = maxSize;
+                    } else if (height > maxSize) {
+                        width *= maxSize / height;
+                        height = maxSize;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    state.taskImageBase64 = compressedDataUrl.split(',')[1];
+                    state.taskImageType = 'image/jpeg';
+                    document.getElementById('taskPreviewImg').src = compressedDataUrl;
+                    document.getElementById('taskDropZone').classList.add('hidden');
+                    document.getElementById('taskPreviewContainer').classList.remove('hidden');
+                };
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -555,7 +593,9 @@
             btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i><span>Аналіз...</span>`;
 
             const prompt = `Ти — учитель географії в Україні. Проаналізуй фото завдання для ${state.selectedClass} класу${state.taskTopic ? ` (Тема: ${state.taskTopic})` : ''}.
-Сформуй ключ відповідей та розподіли бали за 12-бальною шкалою.
+Сформуй ключ відповідей та розподіли бали за 12-бальною шкалою, спираючись на ці критерії:
+${EVALUATION_CRITERIA}
+
 Поверни ТІЛЬКИ JSON:
 {
   "questions": [
@@ -653,13 +693,37 @@
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    state.studentFiles.push({
-                        name: file.name,
-                        base64: evt.target.result.split(',')[1],
-                        mimeType: file.type || 'image/jpeg',
-                        previewUrl: evt.target.result
-                    });
-                    renderStudentFilesList();
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxSize = 1600;
+                        
+                        if (width > height && width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        } else if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        
+                        state.studentFiles.push({
+                            name: file.name,
+                            base64: compressedDataUrl.split(',')[1],
+                            mimeType: 'image/jpeg',
+                            previewUrl: compressedDataUrl
+                        });
+                        renderStudentFilesList();
+                    };
+                    img.src = evt.target.result;
                 };
                 reader.readAsDataURL(file);
             });
@@ -696,11 +760,17 @@
             const prompt = `Ти — учитель географії. Перевір письмову роботу учня ${state.selectedClass} класу за цим ключем:
 ${keyPromptStr}
 
+Оцінюючи роботу, обов'язково спирайся на критерії оцінювання:
+${EVALUATION_CRITERIA}
+
 Розпізнай Прізвище та Ім'я з шапки (якщо не вказано — "Учень (уточнити)").
+Визнач рівень досягнень учня (Початковий, Середній, Достатній, Високий) та вистав бал від 1 до 12.
+
 Поверни ТІЛЬКИ JSON:
 {
   "studentName": "Прізвище та Ім'я",
   "totalScore": 10,
+  "level": "Достатній",
   "mistakes": "Короткий розбір помилок",
   "feedback": "Підбадьорливий фідбек (1-2 речення)",
   "teacherAdvice": "Що опрацювати на уроці"
@@ -725,6 +795,7 @@ ${keyPromptStr}
                     results.push({
                         studentName: parsed.studentName || file.name,
                         totalScore: Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1))),
+                        level: parsed.level || 'Не визначено',
                         mistakes: parsed.mistakes || 'Помилок немає.',
                         feedback: parsed.feedback || 'Молодець!',
                         teacherAdvice: parsed.teacherAdvice || 'Закріпити матеріал.'
@@ -734,6 +805,7 @@ ${keyPromptStr}
                     results.push({
                         studentName: file.name,
                         totalScore: 0,
+                        level: 'Помилка',
                         mistakes: 'Помилка: ' + e.message,
                         feedback: 'Перевірити вручну.',
                         teacherAdvice: 'Ручна перевірка.'
@@ -756,6 +828,12 @@ ${keyPromptStr}
             state.gradingResults.forEach((res, idx) => {
                 if (res.teacherAdvice) summary.push(`• ${res.studentName}: ${res.teacherAdvice}`);
 
+                let levelColor = 'text-slate-300';
+                if (res.level === 'Високий') levelColor = 'text-emerald-400 font-bold';
+                else if (res.level === 'Достатній') levelColor = 'text-amber-400 font-bold';
+                else if (res.level === 'Середній') levelColor = 'text-orange-400 font-bold';
+                else if (res.level === 'Початковий') levelColor = 'text-rose-400 font-bold';
+
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-white/5 border-b border-white/10';
                 tr.innerHTML = `
@@ -764,6 +842,7 @@ ${keyPromptStr}
                         <input type="text" value="${escapeHtml(res.studentName)}" onchange="state.gradingResults[${idx}].studentName = this.value" class="glass-input px-1.5 py-1 text-xs w-full font-semibold">
                     </td>
                     <td class="p-2.5 text-center border-r border-white/10 font-bold text-amber-300 text-sm">${escapeHtml(res.totalScore)}/12</td>
+                    <td class="p-2.5 text-center border-r border-white/10 text-xs ${levelColor}">${escapeHtml(res.level || '-')}</td>
                     <td class="p-2.5 border-r border-white/10 text-slate-300 text-xs">${escapeHtml(res.mistakes)}</td>
                     <td class="p-2.5 border-r border-white/10 text-slate-300 text-xs">${escapeHtml(res.feedback)}</td>
                     <td class="p-2.5 text-slate-400 text-xs">${escapeHtml(res.teacherAdvice)}</td>
@@ -776,9 +855,9 @@ ${keyPromptStr}
 
         function copyTableForExcel() {
             if (!state.gradingResults.length) return;
-            let tsv = "Клас\tУчень\tОцінка\tПомилки\tФідбек\tПорада\n";
+            let tsv = "Клас\tУчень\tОцінка\tРівень\tПомилки\tФідбек\tПорада\n";
             state.gradingResults.forEach(r => {
-                tsv += `${state.selectedClass}\t${r.studentName}\t${r.totalScore}\t${r.mistakes}\t${r.feedback}\t${r.teacherAdvice}\n`;
+                tsv += `${state.selectedClass}\t${r.studentName}\t${r.totalScore}\t${r.level}\t${r.mistakes}\t${r.feedback}\t${r.teacherAdvice}\n`;
             });
             navigator.clipboard.writeText(tsv).then(() => {
                 showAlert('Скопійовано. Вставте в Таблиці (Ctrl+V).', 'success');
@@ -787,9 +866,9 @@ ${keyPromptStr}
 
         function exportCSV() {
             if (!state.gradingResults.length) return;
-            let csv = "\uFEFFКлас,Учень,Оцінка,Помилки,Фідбек,Порада\n";
+            let csv = "\uFEFFКлас,Учень,Оцінка,Рівень,Помилки,Фідбек,Порада\n";
             state.gradingResults.forEach(r => {
-                const cols = [state.selectedClass, r.studentName, r.totalScore, r.mistakes, r.feedback, r.teacherAdvice]
+                const cols = [state.selectedClass, r.studentName, r.totalScore, r.level, r.mistakes, r.feedback, r.teacherAdvice]
                     .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`);
                 csv += cols.join(',') + '\n';
             });
@@ -823,7 +902,7 @@ ${keyPromptStr}
                         ${document.getElementById('classMistakesSummaryText').innerText.replace(/\n/g, '<br/>')}
                     </div>
                     <table>
-                        <thead><tr><th>Клас</th><th>Учень</th><th>Оцінка</th><th>Помилки</th><th>Фідбек</th><th>Порада</th></tr></thead>
+                        <thead><tr><th>Клас</th><th>Учень</th><th>Оцінка</th><th>Рівень</th><th>Помилки</th><th>Фідбек</th><th>Порада</th></tr></thead>
                         <tbody>
             `;
 
@@ -833,6 +912,7 @@ ${keyPromptStr}
                         <td>${escapeHtml(state.selectedClass)}</td>
                         <td><b>${escapeHtml(r.studentName)}</b></td>
                         <td style="text-align:center; font-weight:bold;">${r.totalScore}</td>
+                        <td style="text-align:center;">${escapeHtml(r.level || '-')}</td>
                         <td>${escapeHtml(r.mistakes)}</td>
                         <td>${escapeHtml(r.feedback)}</td>
                         <td>${escapeHtml(r.teacherAdvice)}</td>
