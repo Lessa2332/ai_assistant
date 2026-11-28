@@ -1,0 +1,16 @@
+{
+  "name": "AI Перевірка Робіт — універсальний асистент",
+  "short_name": "AI Перевірка",
+  "description": "Автоматична перевірка письмових робіт з будь-якого предмета за допомогою Gemini AI.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#06070B",
+  "theme_color": "#06070B",
+  "lang": "uk",
+  "categories": ["education", "productivity", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
