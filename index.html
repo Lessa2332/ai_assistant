@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ГеоГраф • Перевірка робіт AI</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    <title>ГеоГраф • Асистент вчителя</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=Space+Grotesk:wght@500..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 
     <script type="importmap">
     {
@@ -20,182 +20,273 @@
     }
     </script>
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Instrument Sans"', 'sans-serif'],
+                        serif: ['Lora', 'serif'],
+                    },
+                    colors: {
+                        base: '#1C1B1A',
+                        panel: '#262523',
+                        border: '#3A3937',
+                        text: '#E8E6E1',
+                        muted: '#8C8A86',
+                        accent: '#D96C4A',
+                        'accent-hover': '#C55A3B',
+                        'accent-light': 'rgba(217, 108, 74, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         html { scroll-behavior: smooth; }
         body {
-            background-color: #06070B;
-            color: #F8FAFC;
-            font-family: 'Inter', sans-serif;
+            background-color: #1C1B1A;
+            color: #E8E6E1;
+            font-family: 'Instrument Sans', sans-serif;
             overflow-x: hidden;
-            padding-bottom: env(safe-area-inset-bottom);
+            -webkit-font-smoothing: antialiased;
         }
-        .liquid-glass {
-            background: linear-gradient(145deg, rgba(22, 26, 38, 0.72) 0%, rgba(11, 13, 20, 0.6) 100%);
-            backdrop-filter: blur(20px) saturate(150%);
-            -webkit-backdrop-filter: blur(20px) saturate(150%);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 20px;
-            box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.75);
-        }
-        .liquid-glass-gold {
-            background: linear-gradient(135deg, rgba(255, 212, 59, 0.24) 0%, rgba(168, 85, 247, 0.12) 100%);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 212, 59, 0.45);
-            border-radius: 20px;
-        }
-        .glass-btn-gold {
-            background: linear-gradient(135deg, #FFE885 0%, #FFD43B 50%, #E5A900 100%);
-            color: #090A0F;
-            font-weight: 800;
+        /* Тактильна панель */
+        .panel {
+            background: #262523;
+            border: 1px solid #3A3937;
             border-radius: 12px;
-            min-height: 48px;
-            box-shadow: 0 8px 22px -6px rgba(255, 212, 59, 0.45);
-            transition: transform 0.15s ease, filter 0.15s ease;
+            box-shadow: 0 4px 20px -5px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
         }
-        .glass-btn-gold:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
-        .glass-btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
-        .glass-btn-lens {
-            background: rgba(20, 24, 36, 0.75);
-            backdrop-filter: blur(14px);
-            color: #F8FAFC;
-            font-weight: 700;
-            border: 1px solid rgba(255, 212, 59, 0.36);
-            border-radius: 12px;
-            min-height: 48px;
+        .panel:hover { box-shadow: 0 8px 30px -5px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05); }
+        
+        /* Тактильні кнопки */
+        .btn-primary {
+            background: #D96C4A;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(217, 108, 74, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
         }
-        .glass-input {
-            background: rgba(8, 10, 16, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: #F8FAFC;
-            border-radius: 12px;
-            min-height: 46px;
+        .btn-primary:hover:not(:disabled) { background: #C55A3B; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(217, 108, 74, 0.4); }
+        .btn-primary:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 4px rgba(217, 108, 74, 0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+        .btn-secondary {
+            background: #2E2D2B;
+            color: #E8E6E1;
+            font-weight: 500;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            border: 1px solid #3A3937;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-secondary:hover:not(:disabled) { background: #3A3937; border-color: #4A4946; transform: translateY(-1px); }
+        .btn-secondary:active:not(:disabled) { transform: translateY(0); }
+
+        /* Поля введення */
+        .input-field {
+            background: #1C1B1A;
+            border: 1px solid #3A3937;
+            color: #E8E6E1;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
             outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 0.9rem;
         }
-        .glass-input:focus {
-            border-color: #FFD43B;
-            box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.2);
+        .input-field:focus {
+            border-color: #D96C4A;
+            box-shadow: 0 0 0 3px rgba(217, 108, 74, 0.15);
         }
-        .step-indicator {
-            transition: all 0.2s ease;
-        }
-        .file-checkbox {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 18px;
-            height: 18px;
-            accent-color: #FFD43B;
+
+        /* Індикатор кроків */
+        .step-pill {
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
-            z-index: 10;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
+        .step-pill.active { background: rgba(217, 108, 74, 0.1); color: #D96C4A; border-color: rgba(217, 108, 74, 0.3); }
+        .step-pill.inactive { color: #8C8A86; }
+        .step-pill.inactive:hover { color: #E8E6E1; background: #262523; }
+
+        /* Скелетон/Завантаження */
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading-pulse { animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        /* Скролбар */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1C1B1A; }
+        ::-webkit-scrollbar-thumb { background: #3A3937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4A4946; }
+
+        /* Туторіал */
+        .tooltip-overlay {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .tooltip-overlay.active { opacity: 1; pointer-events: all; }
+        .tooltip-card {
+            background: #262523; border: 1px solid #3A3937; border-radius: 16px;
+            max-width: 400px; width: 90%; padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: translateY(20px); transition: transform 0.3s;
+        }
+        .tooltip-overlay.active .tooltip-card { transform: translateY(0); }
+
         @media print {
-            .no-print, .ambient-bg { display: none !important; }
-            body { background: #FFF !important; color: #000 !important; }
-            .liquid-glass, table { background: #FFF !important; color: #000 !important; border: 1px solid #000 !important; }
+            .no-print { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .panel { background: #fff !important; border: 1px solid #ccc !important; box-shadow: none !important; color: #000 !important; }
+            table { border: 1px solid #000 !important; }
             th, td { border: 1px solid #000 !important; color: #000 !important; }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between selection:bg-accent selection:text-white">
 
-    <div class="ambient-bg fixed inset-0 z-0 pointer-events-none" style="background: radial-gradient(circle at 14% 18%, rgba(255, 212, 59, 0.12), transparent 42%), radial-gradient(circle at 86% 22%, rgba(56, 189, 248, 0.10), transparent 44%); filter: blur(12px);"></div>
+    <!-- Ambient Background (very subtle) -->
+    <div class="fixed inset-0 z-0 pointer-events-none" style="background: radial-gradient(circle at 50% 0%, rgba(217, 108, 74, 0.05), transparent 50%);"></div>
 
     <!-- Header -->
-    <header class="content-layer sticky top-0 z-30 border-b border-white/15 bg-[#06070B]/70 backdrop-blur-xl no-print">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
+    <header class="relative z-30 border-b border-border bg-base/80 backdrop-blur-md no-print">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300/30 to-purple-500/25 border border-amber-300/50 flex items-center justify-center">
-                    <i class="ph-duotone ph-globe-hemisphere-west text-3xl text-amber-300"></i>
+                <div class="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center">
+                    <i class="ph-fill ph-pencil-simple text-accent text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="font-display text-xl sm:text-2xl font-extrabold text-white">ГеоГраф <span class="text-amber-300">Spatial AI</span></h1>
-                    <p class="text-xs text-slate-400">Автоматизована перевірка робіт</p>
+                    <h1 class="text-lg font-serif font-semibold tracking-tight">Асистент вчителя</h1>
                 </div>
             </div>
-            <button onclick="openApiKeyModal()" id="apiKeyBadge" class="glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-2">
-                <i class="ph-duotone ph-key text-lg text-amber-400"></i>
-                <span id="apiKeyBadgeText">GEMINI API KEY</span>
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="openTutorial()" class="text-muted hover:text-text transition-colors p-2" title="Інструкція">
+                    <i class="ph-bold ph-question text-xl"></i>
+                </button>
+                <button onclick="openApiKeyModal()" id="apiKeyBadge" class="btn-secondary text-xs px-3 py-1.5 flex items-center space-x-2">
+                    <i class="ph-bold ph-key text-accent"></i>
+                    <span id="apiKeyBadgeText" class="hidden sm:inline">API КЛЮЧ</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="content-layer max-w-7xl mx-auto px-4 py-6 w-full flex-grow space-y-5">
+    <main class="relative z-10 max-w-6xl mx-auto px-4 py-8 w-full flex-grow space-y-6">
 
         <!-- Alert -->
-        <div id="alertBox" class="hidden p-4 liquid-glass flex items-start space-x-3">
-            <i id="alertIcon" class="ph-duotone ph-info text-2xl text-amber-400"></i>
-            <div class="flex-1 text-xs sm:text-sm text-slate-100" id="alertText"></div>
-            <button onclick="closeAlert()" class="text-slate-400 hover:text-white p-1"><i class="ph-bold ph-x text-lg"></i></button>
+        <div id="alertBox" class="hidden panel p-4 flex items-start space-x-3 border-l-4 border-l-accent">
+            <i class="ph-bold ph-info text-xl text-accent mt-0.5"></i>
+            <div class="flex-1 text-sm text-text" id="alertText"></div>
+            <button onclick="closeAlert()" class="text-muted hover:text-text p-1"><i class="ph-bold ph-x text-lg"></i></button>
         </div>
 
-        <!-- Auth Gate (початковий екран) -->
-        <section id="authGateSection" class="liquid-glass p-8 max-w-md mx-auto text-center space-y-5 my-8">
-            <div class="w-14 h-14 rounded-2xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center mx-auto text-amber-300">
-                <i class="ph-duotone ph-lock-key text-2xl"></i>
+        <!-- Auth Gate -->
+        <section id="authGateSection" class="panel p-8 max-w-md mx-auto text-center space-y-6 my-12">
+            <div class="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto text-accent">
+                <i class="ph-bold ph-lock-key text-2xl"></i>
             </div>
             <div>
-                <h2 class="text-xl font-bold text-white">Крок 1: Введіть Gemini API Key</h2>
-                <p class="text-xs text-slate-400 mt-1">Формати: AQ... або AIza...</p>
+                <h2 class="text-2xl font-serif font-medium mb-2">Вхід до системи</h2>
+                <p class="text-sm text-muted">Введіть ваш Gemini API Key, щоб почати роботу.</p>
             </div>
-            <input type="password" id="gateApiKeyInput" placeholder="AQ... або AIza..." class="glass-input w-full px-4 text-sm font-mono text-center">
-            <button onclick="submitGateKey()" class="glass-btn-gold w-full py-3 text-sm flex items-center justify-center space-x-2">
-                <i class="ph-bold ph-check text-lg"></i>
-                <span>Увійти та перейти до завдання</span>
+            <input type="password" id="gateApiKeyInput" placeholder="AQ... або AIza..." class="input-field w-full text-center font-mono text-sm">
+            <button onclick="submitGateKey()" class="btn-primary w-full flex items-center justify-center space-x-2">
+                <span>Увійти</span>
+                <i class="ph-bold ph-arrow-right"></i>
             </button>
         </section>
 
         <!-- Main Workflow -->
-        <div id="appWorkflow" class="hidden space-y-5">
+        <div id="appWorkflow" class="hidden space-y-6">
 
-            <!-- Compact Step Indicator -->
-            <div class="flex items-center justify-center gap-1 sm:gap-2 flex-wrap no-print">
-                <div id="stepIndicator1" class="step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold cursor-pointer" onclick="setStep(1)">
-                    <span>①</span><span>Клас і завдання</span>
+            <!-- Step Indicator -->
+            <div class="flex items-center justify-center gap-2 flex-wrap no-print">
+                <div id="stepIndicator1" class="step-pill active flex items-center gap-2" onclick="setStep(1)">
+                    <span class="opacity-50">01</span> <span>Завдання</span>
                 </div>
-                <i class="ph-bold ph-caret-right text-slate-600 text-xs"></i>
-                <div id="stepIndicator2" class="step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs sm:text-sm cursor-pointer" onclick="setStep(2)">
-                    <span>②</span><span>Ключ</span>
+                <i class="ph-bold ph-caret-right text-muted text-xs"></i>
+                <div id="stepIndicator2" class="step-pill inactive flex items-center gap-2" onclick="setStep(2)">
+                    <span class="opacity-50">02</span> <span>Ключ</span>
                 </div>
-                <i class="ph-bold ph-caret-right text-slate-600 text-xs"></i>
-                <div id="stepIndicator3" class="step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs sm:text-sm cursor-pointer" onclick="setStep(3)">
-                    <span>③</span><span>Перевірка</span>
+                <i class="ph-bold ph-caret-right text-muted text-xs"></i>
+                <div id="stepIndicator3" class="step-pill inactive flex items-center gap-2" onclick="setStep(3)">
+                    <span class="opacity-50">03</span> <span>Перевірка</span>
                 </div>
             </div>
 
             <!-- STEP 1 -->
-            <section id="step1Container" class="space-y-5">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    <div class="liquid-glass p-5 space-y-4 lg:col-span-1">
+            <section id="step1Container" class="space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="panel p-6 space-y-5 lg:col-span-1">
                         <div>
-                            <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-1.5">Клас *</label>
-                            <input type="text" id="customClassInput" placeholder="Напр.: 7-А" class="glass-input w-full px-4 text-base font-bold text-amber-300">
+                            <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Предмет</label>
+                            <select id="subjectSelect" class="input-field w-full appearance-none bg-base">
+                                <option value="Географія">Географія</option>
+                                <option value="Історія">Історія</option>
+                                <option value="Біологія">Біологія</option>
+                                <option value="Українська мова та література">Українська мова та література</option>
+                                <option value="Математика">Математика</option>
+                                <option value="Фізика">Фізика</option>
+                                <option value="Хімія">Хімія</option>
+                                <option value="Інший предмет">Інший предмет</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-1.5">Тема (необов'язково)</label>
-                            <input type="text" id="taskContextInput" placeholder="Напр.: Контрольна №1" class="glass-input w-full px-4 text-xs">
+                            <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Клас *</label>
+                            <input type="text" id="customClassInput" placeholder="Напр.: 7-А" class="input-field w-full font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Тема (необов'язково)</label>
+                            <input type="text" id="taskContextInput" placeholder="Напр.: Контрольна №1" class="input-field w-full text-sm">
                         </div>
                     </div>
 
-                    <div class="liquid-glass p-5 space-y-4 lg:col-span-2 flex flex-col justify-between">
-                        <h2 class="text-lg font-bold text-white">Фото завдання</h2>
-                        <div id="taskDropZone" class="rounded-xl border border-dashed border-amber-300/40 bg-black/40 p-5 text-center">
+                    <div class="panel p-6 space-y-5 lg:col-span-2 flex flex-col justify-between">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-serif font-medium">Фото завдання</h2>
+                            <span class="text-xs text-muted">Крок 1 з 3</span>
+                        </div>
+                        <div id="taskDropZone" class="rounded-xl border-2 border-dashed border-border hover:border-accent/50 bg-base/50 p-8 text-center transition-colors">
                             <input type="file" id="taskFileInput" accept="image/*" class="hidden" onchange="handleTaskFileSelect(event)">
-                            <div class="flex flex-wrap justify-center gap-3">
-                                <button onclick="document.getElementById('taskFileInput').click()" class="glass-btn-gold px-4 py-2.5 text-xs flex items-center space-x-1.5">
-                                    <i class="ph-bold ph-upload-simple text-base"></i><span>Обрати файл</span>
-                                </button>
-                                <button onclick="openLiveCamera('task')" class="glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-1.5">
-                                    <i class="ph-duotone ph-camera text-base text-amber-300"></i><span>Камера</span>
-                                </button>
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-12 h-12 rounded-full bg-border flex items-center justify-center text-muted">
+                                    <i class="ph-bold ph-image text-2xl"></i>
+                                </div>
+                                <div class="flex flex-wrap justify-center gap-3">
+                                    <button onclick="document.getElementById('taskFileInput').click()" class="btn-secondary text-sm px-4 py-2">
+                                        Обрати файл
+                                    </button>
+                                    <button onclick="openLiveCamera('task')" class="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
+                                        <i class="ph-bold ph-camera text-accent"></i> Камера
+                                    </button>
+                                </div>
+                                <p class="text-xs text-muted mt-2">Підтримуються формати JPG, PNG, HEIC</p>
                             </div>
                         </div>
-                        <div id="taskPreviewContainer" class="hidden space-y-3">
-                            <div class="relative rounded-xl border border-white/20 bg-black/50 p-2 flex justify-center max-h-52">
-                                <img id="taskPreviewImg" src="" alt="Прев'ю" class="max-h-48 object-contain rounded-lg">
-                                <button onclick="removeTaskImage()" class="absolute top-2 right-2 bg-rose-600 text-white font-bold px-2.5 py-1 text-[10px] rounded-lg">Видалити</button>
+                        <div id="taskPreviewContainer" class="hidden space-y-4">
+                            <div class="relative rounded-xl border border-border bg-base/50 p-2 flex justify-center max-h-64 overflow-hidden">
+                                <img id="taskPreviewImg" src="" alt="Прев'ю" class="max-h-60 object-contain rounded-lg">
+                                <button onclick="removeTaskImage()" class="absolute top-3 right-3 bg-base/80 backdrop-blur text-rose-400 p-2 rounded-lg hover:bg-base transition-colors" title="Видалити">
+                                    <i class="ph-bold ph-trash text-lg"></i>
+                                </button>
                             </div>
-                            <button onclick="generateKeyFromTask()" id="btnGenerateKey" class="glass-btn-gold w-full py-3.5 text-xs sm:text-sm flex items-center justify-center space-x-2">
-                                <i class="ph-bold ph-sparkle text-lg"></i><span>Згенерувати ключ</span>
+                            <button onclick="generateKeyFromTask()" id="btnGenerateKey" class="btn-primary w-full flex items-center justify-center space-x-2">
+                                <i class="ph-bold ph-sparkle text-lg"></i>
+                                <span>Згенерувати ключ</span>
                             </button>
                         </div>
                     </div>
@@ -203,109 +294,115 @@
             </section>
 
             <!-- STEP 2 -->
-            <section id="step2Container" class="hidden space-y-5">
-                <div class="liquid-glass p-5 space-y-4">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/15 pb-3 gap-2">
+            <section id="step2Container" class="hidden space-y-6">
+                <div class="panel p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border pb-4 gap-4">
                         <div>
-                            <span class="text-xs font-bold text-amber-300 uppercase">Крок 2 • Ключ</span>
-                            <h2 class="text-xl font-bold text-white">Клас: <span id="displaySelectedClass" class="text-amber-300"></span></h2>
+                            <span class="text-xs font-bold text-accent uppercase tracking-wider">Крок 2</span>
+                            <h2 class="text-xl font-serif font-medium mt-1">Ключ відповідей <span class="text-muted text-sm font-sans font-normal ml-2">Клас: <span id="displaySelectedClass" class="text-text"></span></span></h2>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="addNewQuestionToKey()" class="glass-btn-lens px-3 py-2 text-xs">+ Питання</button>
-                            <button onclick="confirmKeyAndProceed()" class="glass-btn-gold px-4 py-2 text-xs">Підтвердити ➔</button>
+                            <button onclick="addNewQuestionToKey()" class="btn-secondary text-xs px-3 py-2">+ Питання</button>
+                            <button onclick="confirmKeyAndProceed()" class="btn-primary text-xs px-4 py-2">Підтвердити ➔</button>
                         </div>
                     </div>
-                    <div id="keyQuestionsList" class="space-y-2.5"></div>
-                    <div class="p-3 bg-white/5 rounded-xl flex items-center justify-between font-bold text-sm">
-                        <span>Сума балів:</span>
-                        <span id="totalKeyPoints" class="text-amber-300 text-lg">0 б.</span>
+                    <div id="keyQuestionsList" class="space-y-3"></div>
+                    <div class="pt-4 border-t border-border flex items-center justify-between font-medium">
+                        <span class="text-muted text-sm">Загальна сума балів:</span>
+                        <span id="totalKeyPoints" class="text-accent text-xl font-serif">0 б.</span>
                     </div>
                 </div>
             </section>
 
             <!-- STEP 3 -->
-            <section id="step3Container" class="hidden space-y-5">
-                <div class="liquid-glass p-5 space-y-4 no-print">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/15 pb-3 gap-2">
+            <section id="step3Container" class="hidden space-y-6">
+                <div class="panel p-6 space-y-5 no-print">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-border pb-4 gap-4">
                         <div>
-                            <span class="text-xs font-bold text-sky-300 uppercase">Крок 3 • Перевірка</span>
-                            <h2 class="text-xl font-bold text-white">Роботи класу <span id="currentBatchClass" class="text-amber-300"></span></h2>
+                            <span class="text-xs font-bold text-accent uppercase tracking-wider">Крок 3</span>
+                            <h2 class="text-xl font-serif font-medium mt-1">Перевірка робіт <span id="currentBatchClass" class="text-muted text-sm font-sans font-normal ml-2"></span></h2>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="document.getElementById('studentsFileInput').click()" class="glass-btn-gold px-3.5 py-2 text-xs flex items-center space-x-1">
-                                <i class="ph-bold ph-images text-sm"></i><span>Додати роботи</span>
+                            <button onclick="document.getElementById('studentsFileInput').click()" class="btn-primary text-xs px-3 py-2 flex items-center gap-1">
+                                <i class="ph-bold ph-plus"></i> Додати роботи
                             </button>
-                            <button onclick="openLiveCamera('student')" class="glass-btn-lens px-3.5 py-2 text-xs flex items-center space-x-1">
-                                <i class="ph-duotone ph-camera text-sm text-amber-300"></i><span>Камера</span>
+                            <button onclick="openLiveCamera('student')" class="btn-secondary text-xs px-3 py-2 flex items-center gap-1">
+                                <i class="ph-bold ph-camera text-accent"></i> Камера
                             </button>
                         </div>
                         <input type="file" id="studentsFileInput" accept="image/*" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
                     </div>
                     
-                    <!-- Інструкція по групуванню -->
-                    <div class="text-[10px] text-slate-400 bg-white/5 p-2 rounded-lg">
-                        <i class="ph-bold ph-info text-amber-300"></i> 
-                        Якщо учень здав роботу на кількох фото, позначте їх чекбоксами та натисніть "Об'єднати в одну роботу".
+                    <div class="text-xs text-muted bg-base/50 p-3 rounded-lg border border-border/50 flex items-start gap-2">
+                        <i class="ph-bold ph-info text-accent text-base mt-0.5"></i> 
+                        <span>Якщо один учень здав роботу на кількох фото, позначте їх чекбоксами та натисніть <b>"Об'єднати"</b>.</span>
                     </div>
 
-                    <div id="studentFilesList" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                    <div id="studentFilesList" class="grid grid-cols-3 sm:grid-cols-5 gap-3"></div>
                     
-                    <div id="groupActions" class="hidden flex gap-2">
-                        <button onclick="groupSelectedFiles()" class="glass-btn-gold px-4 py-2 text-xs flex-1">
-                            <i class="ph-bold ph-link text-sm"></i> Об'єднати вибрані в одну роботу
+                    <div id="groupActions" class="hidden">
+                        <button onclick="groupSelectedFiles()" class="btn-secondary w-full text-xs py-2 border-accent/30 text-accent hover:bg-accent/10">
+                            <i class="ph-bold ph-link"></i> Об'єднати вибрані в одну роботу
                         </button>
                     </div>
 
-                    <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="glass-btn-gold w-full py-3.5 text-xs sm:text-sm flex items-center justify-center space-x-2">
-                        <i class="ph-bold ph-lightning text-lg"></i><span>Почати перевірку</span>
+                    <button onclick="startBatchGrading()" id="btnStartGrading" disabled class="btn-primary w-full py-3 flex items-center justify-center space-x-2">
+                        <i class="ph-bold ph-lightning text-lg"></i>
+                        <span>Почати перевірку</span>
                     </button>
                 </div>
 
-                <div id="gradingLoader" class="hidden liquid-glass p-8 text-center space-y-3 no-print">
-                    <div class="w-9 h-9 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <div class="text-amber-300 font-bold text-base">AI перевіряє роботи...</div>
+                <div id="gradingLoader" class="hidden panel p-12 text-center space-y-4 no-print">
+                    <div class="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <div class="text-accent font-medium text-sm">ШІ аналізує роботи...</div>
                 </div>
 
-                <div id="resultsContainer" class="hidden space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="liquid-glass p-4 md:col-span-2 space-y-1.5">
-                            <h3 class="text-xs font-bold text-amber-300 uppercase">Поради на наступний урок</h3>
-                            <div id="classMistakesSummaryText" class="text-xs text-slate-200 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/10 whitespace-pre-line"></div>
+                <div id="resultsContainer" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="panel p-5 md:col-span-2 space-y-2">
+                            <h3 class="text-xs font-bold text-accent uppercase tracking-wider flex items-center gap-2">
+                                <i class="ph-bold ph-lightbulb"></i> Поради на наступний урок
+                            </h3>
+                            <div id="classMistakesSummaryText" class="text-sm text-text leading-relaxed bg-base/50 p-4 rounded-lg border border-border/50 whitespace-pre-line"></div>
                         </div>
-                        <div class="liquid-glass-gold p-4 flex flex-col justify-between space-y-2">
-                            <span class="text-xs font-bold text-amber-300 uppercase">Експорт</span>
-                            <div class="space-y-1.5">
-                                <button onclick="copyTableForExcel()" class="glass-btn-gold w-full py-2 text-xs">Копіювати для Таблиць</button>
-                                <button onclick="exportCSV()" class="glass-btn-lens w-full py-2 text-xs text-amber-300">CSV (Excel)</button>
-                                <button onclick="exportDOCX()" class="glass-btn-lens w-full py-2 text-xs text-sky-300">Word</button>
-                                <button onclick="window.print()" class="glass-btn-lens w-full py-2 text-xs">PDF / Друк</button>
+                        <div class="panel p-5 flex flex-col justify-between space-y-3">
+                            <span class="text-xs font-bold text-muted uppercase tracking-wider">Експорт звіту</span>
+                            <div class="space-y-2">
+                                <button onclick="copyTableForExcel()" class="btn-secondary w-full py-2 text-xs">Копіювати (Таблиці)</button>
+                                <button onclick="exportCSV()" class="btn-secondary w-full py-2 text-xs">CSV (Excel)</button>
+                                <button onclick="exportDOCX()" class="btn-secondary w-full py-2 text-xs">Word (.doc)</button>
+                                <button onclick="window.print()" class="btn-primary w-full py-2 text-xs">Друк / PDF</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="liquid-glass p-0 overflow-hidden">
+                    <div class="panel overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse" id="mainResultsTable">
                                 <thead>
-                                    <tr class="bg-white/10 text-amber-300 text-[10px] font-bold uppercase tracking-wider border-b border-white/15">
-                                        <th class="p-2.5 w-16 text-center border-r border-white/10">Клас</th>
-                                        <th class="p-2.5 w-44 border-r border-white/10">Учень</th>
-                                        <th class="p-2.5 w-20 text-center border-r border-white/10">Оцінка</th>
-                                        <th class="p-2.5 w-24 text-center border-r border-white/10">Рівень</th>
-                                        <th class="p-2.5 border-r border-white/10">Помилки</th>
-                                        <th class="p-2.5 border-r border-white/10">Фідбек</th>
-                                        <th class="p-2.5 w-48">Порада</th>
+                                    <tr class="bg-base/50 text-muted text-[10px] font-bold uppercase tracking-wider border-b border-border">
+                                        <th class="p-3 w-16 text-center border-r border-border/50">Клас</th>
+                                        <th class="p-3 w-48 border-r border-border/50">Учень</th>
+                                        <th class="p-3 w-20 text-center border-r border-border/50">Оцінка</th>
+                                        <th class="p-3 w-24 text-center border-r border-border/50">Рівень</th>
+                                        <th class="p-3 border-r border-border/50">Помилки</th>
+                                        <th class="p-3 border-r border-border/50">Фідбек</th>
+                                        <th class="p-3 w-48">Порада</th>
                                     </tr>
                                 </thead>
-                                <tbody id="studentResultsTableBody" class="divide-y divide-white/10 text-xs text-slate-200"></tbody>
+                                <tbody id="studentResultsTableBody" class="divide-y divide-border/50 text-sm text-text"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="no-print text-center">
-                        <button onclick="addMoreWorks()" class="glass-btn-lens px-6 py-3 text-sm inline-flex items-center space-x-2">
-                            <i class="ph-bold ph-plus-circle text-lg text-amber-300"></i>
-                            <span>Додати ще роботи на перевірку</span>
+                    <div class="no-print flex flex-col sm:flex-row justify-center gap-3 mt-4">
+                        <button onclick="addMoreWorks()" class="btn-secondary px-6 py-3 text-sm inline-flex items-center space-x-2">
+                            <i class="ph-bold ph-plus-circle text-lg text-accent"></i>
+                            <span>Додати ще роботи (цей клас)</span>
+                        </button>
+                        <button onclick="resetAll()" class="btn-secondary px-6 py-3 text-sm inline-flex items-center space-x-2 border-rose-500/30 text-rose-400 hover:bg-rose-500/10">
+                            <i class="ph-bold ph-trash text-lg"></i>
+                            <span>Очистити все і почати новий клас</span>
                         </button>
                     </div>
                 </div>
@@ -314,43 +411,61 @@
     </main>
 
     <!-- Camera Modal -->
-    <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col justify-between p-4">
-        <div class="flex justify-between items-center border-b border-white/15 pb-2">
-            <span class="text-amber-300 font-bold text-sm">Камера</span>
-            <button onclick="closeLiveCamera()" class="text-slate-300 hover:text-white p-2"><i class="ph-bold ph-x text-xl"></i></button>
+    <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-base/95 backdrop-blur-xl flex flex-col justify-between p-4">
+        <div class="flex justify-between items-center border-b border-border pb-3">
+            <span class="text-sm font-medium">Камера</span>
+            <button onclick="closeLiveCamera()" class="text-muted hover:text-text p-2"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
-        <div class="relative flex-1 my-3 bg-black/70 rounded-2xl overflow-hidden flex items-center justify-center border border-white/20">
+        <div class="relative flex-1 my-4 bg-black rounded-xl overflow-hidden flex items-center justify-center border border-border">
             <video id="cameraStreamVideo" autoplay playsinline muted></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
         </div>
-        <div class="flex justify-center gap-3 pb-2">
-            <button onclick="closeLiveCamera()" class="glass-btn-lens px-5 py-2.5 text-xs">Скасувати</button>
-            <button onclick="captureCameraSnapshot()" class="glass-btn-gold px-7 py-2.5 text-xs flex items-center space-x-1.5">
-                <i class="ph-bold ph-aperture text-base"></i><span>Знімок</span>
+        <div class="flex justify-center gap-4 pb-2">
+            <button onclick="closeLiveCamera()" class="btn-secondary px-6 py-3 text-sm">Скасувати</button>
+            <button onclick="captureCameraSnapshot()" class="btn-primary px-8 py-3 text-sm flex items-center space-x-2">
+                <i class="ph-bold ph-aperture text-lg"></i><span>Знімок</span>
             </button>
         </div>
     </div>
 
     <!-- API Key Modal -->
-    <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="liquid-glass max-w-md w-full p-5 space-y-3">
-            <div class="flex items-center justify-between border-b border-white/15 pb-2">
-                <span class="text-amber-300 font-bold text-base">Gemini API Key</span>
-                <button onclick="closeApiKeyModal()" class="text-slate-300 p-1"><i class="ph-bold ph-x text-lg"></i></button>
+    <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-base/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="panel max-w-md w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-border pb-3">
+                <span class="text-lg font-serif font-medium">Налаштування API</span>
+                <button onclick="closeApiKeyModal()" class="text-muted hover:text-text p-1"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
-            <input type="password" id="apiKeyInput" placeholder="AQ... або AIza..." class="glass-input w-full px-4 text-xs font-mono">
-            <div class="flex justify-end gap-2 pt-1">
-                <button onclick="closeApiKeyModal()" class="glass-btn-lens px-4 py-2 text-xs">Скасувати</button>
-                <button onclick="saveApiKeyModal()" class="glass-btn-gold px-4 py-2 text-xs">Зберегти</button>
+            <p class="text-xs text-muted">Введіть ваш Gemini API Key. Він зберігається лише у вашому браузері.</p>
+            <input type="password" id="apiKeyInput" placeholder="AQ... або AIza..." class="input-field w-full font-mono text-sm">
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeApiKeyModal()" class="btn-secondary text-sm px-4 py-2">Скасувати</button>
+                <button onclick="saveApiKeyModal()" class="btn-primary text-sm px-4 py-2">Зберегти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorialModal" class="tooltip-overlay">
+        <div class="tooltip-card relative">
+            <button onclick="closeTutorial()" class="absolute top-4 right-4 text-muted hover:text-text"><i class="ph-bold ph-x text-lg"></i></button>
+            <div id="tutorialContent" class="space-y-4">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="flex justify-between items-center mt-8 pt-4 border-t border-border">
+                <div id="tutorialDots" class="flex gap-1.5"></div>
+                <div class="flex gap-2">
+                    <button onclick="prevTutorialStep()" id="tutorialPrevBtn" class="btn-secondary text-xs px-3 py-1.5 hidden">Назад</button>
+                    <button onclick="nextTutorialStep()" id="tutorialNextBtn" class="btn-primary text-xs px-4 py-1.5">Далі</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        const MODEL_NAME = 'gemini-3.1-flash-lite';
+        const MODEL_NAME = 'gemini-1.5-flash';
         
         const EVALUATION_CRITERIA = `
-Критерії оцінювання з географії (12-бальна шкала):
+Загальні критерії оцінювання (12-бальна шкала):
 1-3 бали (Початковий): учень розпізнає об'єкти, відповідає на прості запитання з суттєвими помилками, працює лише за зразком та під наглядом.
 4-6 балів (Середній): відтворює основну інформацію, виконує типові репродуктивні завдання за алгоритмом, потребує допомоги вчителя.
 7-9 балів (Достатній): знаходить інформацію в різних джерелах, встановлює причинно-наслідкові зв'язки, виконує практичні роботи, здатен аналізувати.
@@ -359,17 +474,26 @@
 
         let state = {
             apiKey: localStorage.getItem('gemini_api_key') || '',
+            subject: 'Географія',
             selectedClass: '',
             taskTopic: '',
             currentStep: 1,
             taskImageBase64: null,
             taskImageType: null,
             keyQuestions: [],
-            studentFiles: [], // тепер це масив об'єктів { name, pages: [{base64, mimeType}], previewUrl }
+            studentFiles: [],
             gradingResults: [], 
             cameraStream: null,
             cameraTargetMode: null,
-            genAI: null
+            genAI: null,
+            tutorialStep: 0,
+            tutorialSteps: [
+                { title: "Вітаємо в Асистенті!", text: "Цей інструмент допоможе вам швидко перевіряти письмові роботи учнів за допомогою штучного інтелекту. Давайте пройдемося по кроках." },
+                { title: "Крок 1: Завдання", text: "Оберіть предмет, вкажіть клас та завантажте фото завдання (контрольної, самостійної тощо). ШІ розпізнає його та складе ключ відповідей." },
+                { title: "Крок 2: Ключ", text: "Перевірте згенерований ключ. Ви можете відредагувати бали або додати нові питання вручну. Це гарантує точність перевірки." },
+                { title: "Крок 3: Перевірка", text: "Завантажте фото робіт учнів. Якщо учень здав кілька сторінок, об'єднайте їх в одну роботу. Потім натисніть 'Почати перевірку'." },
+                { title: "Експорт та Аналіз", text: "Після перевірки ви отримаєте детальний звіт: бали, рівень, помилки та поради. Експортуйте результати в Excel або Word для звітності." }
+            ]
         };
 
         let GoogleGenAI = null;
@@ -382,7 +506,6 @@
                 console.error('SDK import error:', e);
             }
 
-            // Прикріплюємо всі функції до window
             window.submitGateKey = submitGateKey;
             window.openApiKeyModal = openApiKeyModal;
             window.closeApiKeyModal = closeApiKeyModal;
@@ -408,6 +531,11 @@
             window.addMoreWorks = addMoreWorks;
             window.groupSelectedFiles = groupSelectedFiles;
             window.toggleFileSelection = toggleFileSelection;
+            window.resetAll = resetAll;
+            window.openTutorial = openTutorial;
+            window.closeTutorial = closeTutorial;
+            window.nextTutorialStep = nextTutorialStep;
+            window.prevTutorialStep = prevTutorialStep;
 
             updateApiKeyBadge();
 
@@ -419,6 +547,11 @@
                 }
             } else {
                 showAuthGate();
+            }
+            
+            // Показуємо туторіал при першому запуску
+            if (!localStorage.getItem('tutorial_seen')) {
+                setTimeout(openTutorial, 1000);
             }
         }
 
@@ -464,7 +597,14 @@
         }
 
         function updateApiKeyBadge() {
-            document.getElementById('apiKeyBadgeText').textContent = state.apiKey ? 'API КЛЮЧ ✓' : 'API КЛЮЧ';
+            const badge = document.getElementById('apiKeyBadgeText');
+            if (state.apiKey) {
+                badge.textContent = 'API КЛЮЧ ✓';
+                badge.classList.add('text-accent');
+            } else {
+                badge.textContent = 'API КЛЮЧ';
+                badge.classList.remove('text-accent');
+            }
         }
 
         function openApiKeyModal() {
@@ -490,6 +630,12 @@
         }
 
         function setStep(stepNum) {
+            if (stepNum === 1 && state.currentStep !== 1) {
+                state.keyQuestions = [];
+                document.getElementById('keyQuestionsList').innerHTML = '';
+                document.getElementById('totalKeyPoints').textContent = '0 б.';
+            }
+
             if (stepNum > 1 && !state.keyQuestions.length) {
                 showAlert('Спочатку згенеруйте ключ на Кроці 1.', 'warning');
                 return;
@@ -502,9 +648,9 @@
             for (let i = 1; i <= 3; i++) {
                 const el = document.getElementById('stepIndicator' + i);
                 if (i === stepNum) {
-                    el.className = 'step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold cursor-pointer';
+                    el.className = 'step-pill active flex items-center gap-2';
                 } else {
-                    el.className = 'step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs sm:text-sm cursor-pointer';
+                    el.className = 'step-pill inactive flex items-center gap-2';
                 }
             }
         }
@@ -562,7 +708,6 @@
                 document.getElementById('taskDropZone').classList.add('hidden');
                 document.getElementById('taskPreviewContainer').classList.remove('hidden');
             } else {
-                // Додаємо як нову роботу з однією сторінкою
                 state.studentFiles.push({
                     name: `Робота_${state.studentFiles.length + 1}`,
                     pages: [{ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' }],
@@ -622,12 +767,24 @@
 
         async function generateKeyFromTask() {
             const customClass = document.getElementById('customClassInput').value.trim();
+            const subject = document.getElementById('subjectSelect').value;
+            
             if (!customClass) {
                 showAlert('Вкажіть клас (напр., 7-А).', 'warning');
                 return;
             }
+            
+            const newTopic = document.getElementById('taskContextInput').value.trim();
+
+            if (state.selectedClass !== customClass || state.taskTopic !== newTopic) {
+                state.gradingResults = [];
+                document.getElementById('studentResultsTableBody').innerHTML = '';
+                document.getElementById('resultsContainer').classList.add('hidden');
+            }
+
+            state.subject = subject;
             state.selectedClass = customClass;
-            state.taskTopic = document.getElementById('taskContextInput').value.trim();
+            state.taskTopic = newTopic;
 
             if (!state.taskImageBase64) {
                 showAlert('Завантажте фото завдання.', 'warning');
@@ -638,7 +795,7 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i><span>Аналіз...</span>`;
 
-            const prompt = `Ти — учитель географії в Україні. Проаналізуй фото завдання для ${state.selectedClass} класу${state.taskTopic ? ` (Тема: ${state.taskTopic})` : ''}.
+            const prompt = `Ти — досвідчений учитель ${state.subject} в Україні. Проаналізуй фото завдання для ${state.selectedClass} класу${state.taskTopic ? ` (Тема: ${state.taskTopic})` : ''}.
 Сформуй ключ відповідей та розподіли бали за 12-бальною шкалою, спираючись на ці критерії:
 ${EVALUATION_CRITERIA}
 
@@ -691,20 +848,20 @@ ${EVALUATION_CRITERIA}
             state.keyQuestions.forEach((q, idx) => {
                 total += parseFloat(q.maxPoints) || 0;
                 const div = document.createElement('div');
-                div.className = 'liquid-glass p-3 space-y-1.5';
+                div.className = 'panel p-4 space-y-2 bg-base/30';
                 div.innerHTML = `
-                    <div class="flex flex-col sm:flex-row gap-1.5 justify-between">
-                        <div class="flex items-center space-x-1.5 flex-1">
-                            <span class="w-5 h-5 rounded bg-amber-400 text-black font-bold flex items-center justify-center text-[10px] shrink-0">${q.num || idx + 1}</span>
-                            <input type="text" value="${escapeHtml(q.text || '')}" onchange="updateKeyQuestion(${idx}, 'text', this.value)" class="glass-input px-2 py-1 text-xs w-full font-semibold">
+                    <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                        <div class="flex items-center space-x-2 flex-1">
+                            <span class="w-6 h-6 rounded bg-accent/20 text-accent font-bold flex items-center justify-center text-xs shrink-0">${q.num || idx + 1}</span>
+                            <input type="text" value="${escapeHtml(q.text || '')}" onchange="updateKeyQuestion(${idx}, 'text', this.value)" class="input-field px-2 py-1 text-sm w-full font-medium">
                         </div>
-                        <div class="flex items-center space-x-1 shrink-0">
-                            <input type="number" step="0.5" min="0" max="12" value="${q.maxPoints ?? 1}" onchange="updateKeyQuestion(${idx}, 'maxPoints', parseFloat(this.value)||0)" class="glass-input w-14 text-center text-xs font-bold text-amber-300">
-                            <span class="text-xs">б.</span>
-                            <button onclick="deleteKeyQuestion(${idx})" class="text-rose-400 p-1"><i class="ph-bold ph-trash text-sm"></i></button>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <input type="number" step="0.5" min="0" max="12" value="${q.maxPoints ?? 1}" onchange="updateKeyQuestion(${idx}, 'maxPoints', parseFloat(this.value)||0)" class="input-field w-16 text-center text-sm font-bold text-accent">
+                            <span class="text-xs text-muted">б.</span>
+                            <button onclick="deleteKeyQuestion(${idx})" class="text-muted hover:text-rose-400 p-1 transition-colors"><i class="ph-bold ph-trash text-lg"></i></button>
                         </div>
                     </div>
-                    <textarea onchange="updateKeyQuestion(${idx}, 'key', this.value)" class="glass-input w-full p-1.5 text-xs leading-relaxed min-h-[44px]">${escapeHtml(q.key || '')}</textarea>
+                    <textarea onchange="updateKeyQuestion(${idx}, 'key', this.value)" class="input-field w-full p-2 text-sm leading-relaxed min-h-[50px]">${escapeHtml(q.key || '')}</textarea>
                 `;
                 container.appendChild(div);
             });
@@ -780,13 +937,13 @@ ${EVALUATION_CRITERIA}
             state.studentFiles.forEach((file, idx) => {
                 if (file.selected) hasSelected = true;
                 const card = document.createElement('div');
-                card.className = `relative liquid-glass p-1.5 text-center ${file.selected ? 'ring-2 ring-amber-400' : ''}`;
+                card.className = `relative panel p-2 text-center ${file.selected ? 'ring-2 ring-accent border-accent' : ''}`;
                 card.innerHTML = `
-                    <input type="checkbox" class="file-checkbox" ${file.selected ? 'checked' : ''} onchange="toggleFileSelection(${idx})">
-                    <img src="${file.previewUrl}" class="h-16 w-full object-cover rounded-md">
-                    <div class="text-[9px] text-slate-400 truncate mt-0.5">${escapeHtml(file.name)}</div>
-                    <div class="text-[8px] text-amber-300 font-bold">${file.pages.length} стор.</div>
-                    <button onclick="removeStudentFile(${idx})" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">×</button>
+                    <input type="checkbox" class="absolute top-2 left-2 w-4 h-4 accent-accent cursor-pointer z-10" ${file.selected ? 'checked' : ''} onchange="toggleFileSelection(${idx})">
+                    <img src="${file.previewUrl}" class="h-20 w-full object-cover rounded-md mb-2">
+                    <div class="text-[10px] text-muted truncate">${escapeHtml(file.name)}</div>
+                    <div class="text-[10px] text-accent font-bold">${file.pages.length} стор.</div>
+                    <button onclick="removeStudentFile(${idx})" class="absolute -top-2 -right-2 bg-panel border border-border text-muted hover:text-rose-400 rounded-full w-6 h-6 flex items-center justify-center shadow-sm transition-colors"><i class="ph-bold ph-x text-xs"></i></button>
                 `;
                 container.appendChild(card);
             });
@@ -810,30 +967,25 @@ ${EVALUATION_CRITERIA}
                 return;
             }
 
-            // Беремо перший вибраний файл як основу
             const firstIdx = selectedIndices[0];
             const baseFile = state.studentFiles[firstIdx];
             
-            // Збираємо всі сторінки з вибраних файлів
             const allPages = [];
             selectedIndices.forEach(idx => {
                 allPages.push(...state.studentFiles[idx].pages);
             });
 
-            // Створюємо новий об'єднаний файл
             const mergedFile = {
                 name: `Робота (${allPages.length} стор.)`,
                 pages: allPages,
-                previewUrl: baseFile.previewUrl, // показуємо першу сторінку як прев'ю
+                previewUrl: baseFile.previewUrl,
                 selected: false
             };
 
-            // Видаляємо старі файли (з кінця, щоб не збити індекси)
             selectedIndices.sort((a, b) => b - a).forEach(idx => {
                 state.studentFiles.splice(idx, 1);
             });
 
-            // Додаємо об'єднаний файл на початок
             state.studentFiles.unshift(mergedFile);
             
             renderStudentFilesList();
@@ -851,7 +1003,7 @@ ${EVALUATION_CRITERIA}
             document.getElementById('resultsContainer').classList.add('hidden');
 
             const keyPromptStr = JSON.stringify(state.keyQuestions);
-            const prompt = `Ти — учитель географії. Перевір письмову роботу учня ${state.selectedClass} класу за цим ключем:
+            const prompt = `Ти — учитель ${state.subject}. Перевір письмову роботу учня ${state.selectedClass} класу за цим ключем:
 ${keyPromptStr}
 
 Оцінюючи роботу, обов'язково спирайся на критерії оцінювання:
@@ -872,20 +1024,42 @@ ${EVALUATION_CRITERIA}
 
             const newResults = [];
             for (const file of state.studentFiles) {
-                try {
-                    // Формуємо parts для запиту: всі сторінки роботи
-                    const parts = [{ text: prompt }];
-                    file.pages.forEach(page => {
-                        parts.push({ inlineData: { mimeType: page.mimeType, data: page.base64 } });
-                    });
+                let success = false;
+                let attempts = 0;
+                const maxAttempts = 3;
+                let parsed = null;
 
-                    const response = await state.genAI.models.generateContent({
-                        model: MODEL_NAME,
-                        contents: [{ role: 'user', parts: parts }],
-                        config: { responseMimeType: 'application/json' }
-                    });
+                while (!success && attempts < maxAttempts) {
+                    try {
+                        const parts = [{ text: prompt }];
+                        file.pages.forEach(page => {
+                            parts.push({ inlineData: { mimeType: page.mimeType, data: page.base64 } });
+                        });
 
-                    const parsed = JSON.parse(response.text);
+                        const response = await state.genAI.models.generateContent({
+                            model: MODEL_NAME,
+                            contents: [{ role: 'user', parts: parts }],
+                            config: { responseMimeType: 'application/json' }
+                        });
+
+                        parsed = JSON.parse(response.text);
+                        success = true;
+                    } catch (e) {
+                        attempts++;
+                        console.error(`Спроба ${attempts} не вдалася:`, e.message);
+                        
+                        if (e.message && e.message.includes('503')) {
+                            if (attempts < maxAttempts) {
+                                showAlert(`Сервер AI перевантажений. Чекаємо 5 секунд...`, 'warning');
+                                await new Promise(resolve => setTimeout(resolve, 5000));
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (success && parsed) {
                     newResults.push({
                         studentName: parsed.studentName || file.name,
                         totalScore: Math.min(12, Math.max(1, Math.round(Number(parsed.totalScore) || 1))),
@@ -894,14 +1068,13 @@ ${EVALUATION_CRITERIA}
                         feedback: parsed.feedback || 'Молодець!',
                         teacherAdvice: parsed.teacherAdvice || 'Закріпити матеріал.'
                     });
-                } catch (e) {
-                    console.error(e);
+                } else {
                     newResults.push({
                         studentName: file.name,
                         totalScore: 0,
                         level: 'Помилка',
-                        mistakes: 'Помилка: ' + e.message,
-                        feedback: 'Перевірити вручну.',
+                        mistakes: 'Не вдалося перевірити (сервер перевантажений)',
+                        feedback: 'Спробуйте пізніше.',
                         teacherAdvice: 'Ручна перевірка.'
                     });
                 }
@@ -926,24 +1099,24 @@ ${EVALUATION_CRITERIA}
             state.gradingResults.forEach((res, idx) => {
                 if (res.teacherAdvice) summary.push(`• ${res.studentName}: ${res.teacherAdvice}`);
 
-                let levelColor = 'text-slate-300';
+                let levelColor = 'text-muted';
                 if (res.level === 'Високий') levelColor = 'text-emerald-400 font-bold';
                 else if (res.level === 'Достатній') levelColor = 'text-amber-400 font-bold';
                 else if (res.level === 'Середній') levelColor = 'text-orange-400 font-bold';
                 else if (res.level === 'Початковий') levelColor = 'text-rose-400 font-bold';
 
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-white/5 border-b border-white/10';
+                tr.className = 'hover:bg-white/5 border-b border-border/50 transition-colors';
                 tr.innerHTML = `
-                    <td class="p-2.5 text-center font-bold text-amber-300 border-r border-white/10">${escapeHtml(state.selectedClass)}</td>
-                    <td class="p-2.5 border-r border-white/10">
-                        <input type="text" value="${escapeHtml(res.studentName)}" onchange="state.gradingResults[${idx}].studentName = this.value" class="glass-input px-1.5 py-1 text-xs w-full font-semibold">
+                    <td class="p-3 text-center font-bold text-muted border-r border-border/50">${escapeHtml(state.selectedClass)}</td>
+                    <td class="p-3 border-r border-border/50">
+                        <input type="text" value="${escapeHtml(res.studentName)}" onchange="state.gradingResults[${idx}].studentName = this.value" class="input-field px-2 py-1 text-sm w-full font-medium">
                     </td>
-                    <td class="p-2.5 text-center border-r border-white/10 font-bold text-amber-300 text-sm">${escapeHtml(res.totalScore)}/12</td>
-                    <td class="p-2.5 text-center border-r border-white/10 text-xs ${levelColor}">${escapeHtml(res.level || '-')}</td>
-                    <td class="p-2.5 border-r border-white/10 text-slate-300 text-xs">${escapeHtml(res.mistakes)}</td>
-                    <td class="p-2.5 border-r border-white/10 text-slate-300 text-xs">${escapeHtml(res.feedback)}</td>
-                    <td class="p-2.5 text-slate-400 text-xs">${escapeHtml(res.teacherAdvice)}</td>
+                    <td class="p-3 text-center border-r border-border/50 font-bold text-accent text-base font-serif">${escapeHtml(res.totalScore)}/12</td>
+                    <td class="p-3 text-center border-r border-border/50 text-xs ${levelColor}">${escapeHtml(res.level || '-')}</td>
+                    <td class="p-3 border-r border-border/50 text-muted text-xs leading-relaxed">${escapeHtml(res.mistakes)}</td>
+                    <td class="p-3 border-r border-border/50 text-muted text-xs leading-relaxed">${escapeHtml(res.feedback)}</td>
+                    <td class="p-3 text-muted text-xs leading-relaxed">${escapeHtml(res.teacherAdvice)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -955,8 +1128,31 @@ ${EVALUATION_CRITERIA}
             setStep(3);
             document.getElementById('resultsContainer').classList.add('hidden');
             document.getElementById('gradingLoader').classList.add('hidden');
-            document.querySelector('#step3Container .liquid-glass').scrollIntoView({ behavior: 'smooth' });
+            document.querySelector('#step3Container .panel').scrollIntoView({ behavior: 'smooth' });
             showAlert('Додайте нові фото робіт.', 'info');
+        }
+
+        function resetAll() {
+            if (!confirm('Ви впевнені, що хочете очистити всі результати та почати з нуля?')) return;
+            
+            state.gradingResults = [];
+            state.keyQuestions = [];
+            state.studentFiles = [];
+            state.selectedClass = '';
+            state.taskTopic = '';
+            
+            document.getElementById('customClassInput').value = '';
+            document.getElementById('taskContextInput').value = '';
+            document.getElementById('studentResultsTableBody').innerHTML = '';
+            document.getElementById('studentFilesList').innerHTML = '';
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('taskPreviewContainer').classList.add('hidden');
+            document.getElementById('taskDropZone').classList.remove('hidden');
+            document.getElementById('taskPreviewImg').src = '';
+            state.taskImageBase64 = null;
+            
+            setStep(1);
+            showAlert('Всі дані очищено.', 'info');
         }
 
         function copyTableForExcel() {
@@ -1001,7 +1197,7 @@ ${EVALUATION_CRITERIA}
                 </style>
                 </head>
                 <body>
-                    <h2>Звіт: ${escapeHtml(state.selectedClass)}</h2>
+                    <h2>Звіт: ${escapeHtml(state.subject)} - ${escapeHtml(state.selectedClass)}</h2>
                     ${state.taskTopic ? `<p><b>Тема:</b> ${escapeHtml(state.taskTopic)}</p>` : ''}
                     <div class="summary">
                         <b>Поради на наступний урок:</b><br/>
@@ -1034,6 +1230,64 @@ ${EVALUATION_CRITERIA}
             link.download = `Результати_${state.selectedClass}.doc`;
             link.click();
             showAlert('Word-файл завантажено.', 'success');
+        }
+
+        // Tutorial Logic
+        function openTutorial() {
+            state.tutorialStep = 0;
+            renderTutorial();
+            document.getElementById('tutorialModal').classList.add('active');
+        }
+        
+        function closeTutorial() {
+            document.getElementById('tutorialModal').classList.remove('active');
+            localStorage.setItem('tutorial_seen', 'true');
+        }
+
+        function renderTutorial() {
+            const step = state.tutorialSteps[state.tutorialStep];
+            const content = document.getElementById('tutorialContent');
+            content.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-accent/20 text-accent flex items-center justify-center mb-4">
+                    <i class="ph-bold ph-info text-xl"></i>
+                </div>
+                <h3 class="text-xl font-serif font-medium mb-2">${step.title}</h3>
+                <p class="text-sm text-muted leading-relaxed">${step.text}</p>
+            `;
+            
+            // Dots
+            const dotsContainer = document.getElementById('tutorialDots');
+            dotsContainer.innerHTML = '';
+            state.tutorialSteps.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = `w-2 h-2 rounded-full transition-colors ${i === state.tutorialStep ? 'bg-accent' : 'bg-border'}`;
+                dotsContainer.appendChild(dot);
+            });
+
+            // Buttons
+            document.getElementById('tutorialPrevBtn').classList.toggle('hidden', state.tutorialStep === 0);
+            const nextBtn = document.getElementById('tutorialNextBtn');
+            if (state.tutorialStep === state.tutorialSteps.length - 1) {
+                nextBtn.textContent = 'Завершити';
+                nextBtn.onclick = closeTutorial;
+            } else {
+                nextBtn.textContent = 'Далі';
+                nextBtn.onclick = nextTutorialStep;
+            }
+        }
+
+        function nextTutorialStep() {
+            if (state.tutorialStep < state.tutorialSteps.length - 1) {
+                state.tutorialStep++;
+                renderTutorial();
+            }
+        }
+
+        function prevTutorialStep() {
+            if (state.tutorialStep > 0) {
+                state.tutorialStep--;
+                renderTutorial();
+            }
         }
 
         function showAlert(msg, type = 'info') {
