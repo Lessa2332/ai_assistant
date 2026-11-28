@@ -6,6 +6,14 @@
     <title>AI Перевірка Робіт • Універсальний асистент</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#06070B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Перевірка">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,9 +43,14 @@
             color: #F8FAFC;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            padding-bottom: env(safe-area-inset-bottom);
             min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+            -webkit-font-smoothing: antialiased;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
         .liquid-glass {
             background: linear-gradient(145deg, rgba(22, 26, 38, 0.72) 0%, rgba(11, 13, 20, 0.6) 100%);
@@ -80,28 +93,31 @@
             border: 1px solid rgba(255, 255, 255, 0.18);
             color: #F8FAFC;
             border-radius: 12px;
-            min-height: 46px;
+            min-height: 48px;
             outline: none;
             font-size: 16px; /* запобігає зуму на iOS */
+            -webkit-appearance: none;
         }
         .glass-input:focus {
             border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.2);
         }
-        .step-indicator { transition: all 0.2s ease; cursor: pointer; }
+        input[type="number"] { font-size: 16px; }
+        .step-indicator { transition: all 0.2s ease; cursor: pointer; touch-action: manipulation; }
         .file-checkbox {
             position: absolute;
             top: 4px;
             left: 4px;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             accent-color: var(--gold);
             cursor: pointer;
             z-index: 10;
+            touch-action: manipulation;
         }
         .toast-container {
             position: fixed;
-            top: 80px;
+            top: calc(80px + env(safe-area-inset-top));
             right: 16px;
             z-index: 100;
             display: flex;
@@ -131,18 +147,28 @@
         @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(30px); } }
 
-        /* Onboarding */
         .onboarding-step { display: none; }
         .onboarding-step.active { display: block; }
 
-        @media print {
-            .no-print, .ambient-bg, .toast-container { display: none !important; }
-            body { background: #FFF !important; color: #000 !important; }
-            .liquid-glass, table { background: #FFF !important; color: #000 !important; border: 1px solid #000 !important; box-shadow: none !important; }
-            th, td { border: 1px solid #000 !important; color: #000 !important; }
-        }
+        .progress-track { height: 6px; border-radius: 999px; background: rgba(8,10,16,0.7); overflow: hidden; border: 1px solid rgba(255,255,255,0.18); }
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), var(--sky)); border-radius: 999px; transition: width 0.4s cubic-bezier(0.22,1,0.36,1); }
+
         @media (max-width: 640px) {
             .liquid-glass { border-radius: 16px; }
+            .toast-container { right: 8px; left: 8px; max-width: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        @media print {
+            .no-print, .ambient-bg, .toast-container { display: none !important; }
+            body { background: #FFF !important; color: #000 !important; padding: 0 !important; }
+            .liquid-glass, table { background: #FFF !important; color: #000 !important; border: 1px solid #000 !important; box-shadow: none !important; }
+            th, td { border: 1px solid #000 !important; color: #000 !important; }
         }
     </style>
 </head>
@@ -150,11 +176,10 @@
 
     <div class="ambient-bg fixed inset-0 z-0 pointer-events-none" style="background: radial-gradient(circle at 14% 18%, rgba(255, 212, 59, 0.12), transparent 42%), radial-gradient(circle at 86% 22%, rgba(56, 189, 248, 0.10), transparent 44%); filter: blur(12px);"></div>
 
-    <!-- Toast Container -->
     <div id="toastContainer" class="toast-container no-print"></div>
 
     <!-- Header -->
-    <header class="content-layer sticky top-0 z-30 border-b border-white/15 bg-[#06070B]/70 backdrop-blur-xl no-print">
+    <header class="content-layer sticky top-0 z-30 border-b border-white/15 bg-[#06070B]/70 backdrop-blur-xl no-print" style="padding-top: env(safe-area-inset-top);">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300/30 to-sky-500/25 border border-amber-300/50 flex items-center justify-center">
@@ -189,7 +214,7 @@
                 <h2 class="text-xl font-bold text-white">Крок 1: Введіть Gemini API Key</h2>
                 <p class="text-xs text-slate-400 mt-1">Формати: AQ... або AIza...</p>
             </div>
-            <input type="password" id="gateApiKeyInput" placeholder="AQ... або AIza..." class="glass-input w-full px-4 text-sm font-mono text-center">
+            <input type="password" id="gateApiKeyInput" placeholder="AQ... або AIza..." autocomplete="off" spellcheck="false" class="glass-input w-full px-4 text-sm font-mono text-center">
             <button onclick="submitGateKey()" class="glass-btn-gold w-full py-3 text-sm flex items-center justify-center space-x-2">
                 <i class="ph-bold ph-check text-lg"></i>
                 <span>Увійти та почати</span>
@@ -199,7 +224,6 @@
         <!-- Main Workflow -->
         <div id="appWorkflow" class="hidden space-y-5">
 
-            <!-- Step Indicator -->
             <div class="flex items-center justify-center gap-1 sm:gap-2 flex-wrap no-print">
                 <div id="stepIndicator1" class="step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold" onclick="setStep(1)">
                     <span>①</span><span>Параметри</span>
@@ -224,11 +248,11 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-1.5">Предмет *</label>
-                            <input type="text" id="subjectInput" placeholder="Напр.: Географія, Математика, Мова" class="glass-input w-full px-4 text-xs" value="Географія">
+                            <input type="text" id="subjectInput" placeholder="Напр.: Географія, Математика" class="glass-input w-full px-4 text-sm" value="Географія">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Тема (необов'язково)</label>
-                            <input type="text" id="taskContextInput" placeholder="Напр.: Контрольна №1" class="glass-input w-full px-4 text-xs">
+                            <input type="text" id="taskContextInput" placeholder="Напр.: Контрольна №1" class="glass-input w-full px-4 text-sm">
                         </div>
                     </div>
 
@@ -236,11 +260,12 @@
                         <h2 class="text-lg font-bold text-white">Фото завдання</h2>
                         <div id="taskDropZone" class="rounded-xl border border-dashed border-amber-300/40 bg-black/40 p-5 text-center">
                             <input type="file" id="taskFileInput" accept="image/*" class="hidden" onchange="handleTaskFileSelect(event)">
+                            <input type="file" id="taskCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleTaskFileSelect(event)">
                             <div class="flex flex-wrap justify-center gap-3">
                                 <button onclick="document.getElementById('taskFileInput').click()" class="glass-btn-gold px-4 py-2.5 text-xs flex items-center space-x-1.5">
                                     <i class="ph-bold ph-upload-simple text-base"></i><span>Обрати файл</span>
                                 </button>
-                                <button onclick="openLiveCamera('task')" class="glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-1.5">
+                                <button onclick="document.getElementById('taskCameraInput').click()" class="glass-btn-lens px-4 py-2.5 text-xs flex items-center space-x-1.5">
                                     <i class="ph-duotone ph-camera text-base text-amber-300"></i><span>Камера</span>
                                 </button>
                             </div>
@@ -289,13 +314,14 @@
                         </div>
                         <div class="flex gap-2">
                             <button onclick="document.getElementById('studentsFileInput').click()" class="glass-btn-gold px-3.5 py-2 text-xs flex items-center space-x-1">
-                                <i class="ph-bold ph-images text-sm"></i><span>Додати роботи</span>
+                                <i class="ph-bold ph-images text-sm"></i><span>Файли</span>
                             </button>
-                            <button onclick="openLiveCamera('student')" class="glass-btn-lens px-3.5 py-2 text-xs flex items-center space-x-1">
+                            <button onclick="document.getElementById('studentsCameraInput').click()" class="glass-btn-lens px-3.5 py-2 text-xs flex items-center space-x-1">
                                 <i class="ph-duotone ph-camera text-sm text-amber-300"></i><span>Камера</span>
                             </button>
                         </div>
                         <input type="file" id="studentsFileInput" accept="image/*" multiple class="hidden" onchange="handleStudentFilesSelect(event)">
+                        <input type="file" id="studentsCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleStudentFilesSelect(event)">
                     </div>
                     
                     <div class="text-[10px] text-slate-400 bg-white/5 p-2 rounded-lg flex items-start gap-1.5">
@@ -316,10 +342,16 @@
                     </button>
                 </div>
 
-                <div id="gradingLoader" class="hidden liquid-glass p-8 text-center space-y-3 no-print">
-                    <div class="w-9 h-9 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <div class="text-amber-300 font-bold text-base">AI перевіряє роботи...</div>
-                    <div class="text-xs text-slate-400">Це може зайняти кілька секунд на кожну роботу</div>
+                <div id="gradingLoader" class="hidden liquid-glass p-6 space-y-3 no-print">
+                    <div class="text-center space-y-3">
+                        <div class="w-9 h-9 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <div class="text-amber-300 font-bold text-base" id="loaderTitle">AI перевіряє роботи...</div>
+                    </div>
+                    <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span id="progressLabel">Підготовка…</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
                 </div>
 
                 <div id="resultsContainer" class="hidden space-y-5">
@@ -361,35 +393,17 @@
                     <div class="no-print flex flex-col sm:flex-row justify-center gap-3 mt-4">
                         <button onclick="addMoreWorks()" class="glass-btn-lens px-6 py-3 text-sm inline-flex items-center justify-center space-x-2">
                             <i class="ph-bold ph-plus-circle text-lg text-amber-300"></i>
-                            <span>Додати ще роботи (цей клас)</span>
+                            <span>Додати ще роботи</span>
                         </button>
                         <button onclick="resetAll()" class="glass-btn-lens px-6 py-3 text-sm inline-flex items-center justify-center space-x-2 border-rose-500/50 text-rose-300 hover:bg-rose-500/10">
                             <i class="ph-bold ph-trash text-lg"></i>
-                            <span>Очистити все і почати новий клас</span>
+                            <span>Очистити все</span>
                         </button>
                     </div>
                 </div>
             </section>
         </div>
     </main>
-
-    <!-- Camera Modal -->
-    <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col justify-between p-4">
-        <div class="flex justify-between items-center border-b border-white/15 pb-2">
-            <span class="text-amber-300 font-bold text-sm">Камера</span>
-            <button onclick="closeLiveCamera()" class="text-slate-300 hover:text-white p-2"><i class="ph-bold ph-x text-xl"></i></button>
-        </div>
-        <div class="relative flex-1 my-3 bg-black/70 rounded-2xl overflow-hidden flex items-center justify-center border border-white/20">
-            <video id="cameraStreamVideo" autoplay playsinline muted class="max-h-full max-w-full"></video>
-            <canvas id="cameraCanvas" class="hidden"></canvas>
-        </div>
-        <div class="flex justify-center gap-3 pb-2">
-            <button onclick="closeLiveCamera()" class="glass-btn-lens px-5 py-2.5 text-xs">Скасувати</button>
-            <button onclick="captureCameraSnapshot()" class="glass-btn-gold px-7 py-2.5 text-xs flex items-center space-x-1.5">
-                <i class="ph-bold ph-aperture text-base"></i><span>Знімок</span>
-            </button>
-        </div>
-    </div>
 
     <!-- API Key Modal -->
     <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
@@ -399,7 +413,7 @@
                 <button onclick="closeApiKeyModal()" class="text-slate-300 p-1"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <p class="text-xs text-slate-400">Ключ зберігається локально у вашому браузері. Отримати можна на <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-sky-300 underline">Google AI Studio</a>.</p>
-            <input type="password" id="apiKeyInput" placeholder="AQ... або AIza..." class="glass-input w-full px-4 text-xs font-mono">
+            <input type="password" id="apiKeyInput" placeholder="AQ... або AIza..." autocomplete="off" spellcheck="false" class="glass-input w-full px-4 text-xs font-mono">
             <div class="flex justify-end gap-2 pt-1">
                 <button onclick="closeApiKeyModal()" class="glass-btn-lens px-4 py-2 text-xs">Скасувати</button>
                 <button onclick="saveApiKeyModal()" class="glass-btn-gold px-4 py-2 text-xs">Зберегти</button>
@@ -416,7 +430,6 @@
             </div>
 
             <div id="onboardingContent">
-                <!-- Step 1 -->
                 <div class="onboarding-step active" data-step="1">
                     <div class="text-center space-y-3 py-4">
                         <div class="w-16 h-16 rounded-2xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center mx-auto text-amber-300">
@@ -426,7 +439,6 @@
                         <p class="text-sm text-slate-300">Введіть ваш Gemini API Key. Він зберігається лише у вашому браузері та не передається третім особам.</p>
                     </div>
                 </div>
-                <!-- Step 2 -->
                 <div class="onboarding-step" data-step="2">
                     <div class="text-center space-y-3 py-4">
                         <div class="w-16 h-16 rounded-2xl bg-sky-400/20 border border-sky-300/40 flex items-center justify-center mx-auto text-sky-300">
@@ -436,7 +448,6 @@
                         <p class="text-sm text-slate-300">Завантажте фото завдання або зробіть знімок камерою. Вкажіть клас, предмет і тему. AI сформує ключ відповідей.</p>
                     </div>
                 </div>
-                <!-- Step 3 -->
                 <div class="onboarding-step" data-step="3">
                     <div class="text-center space-y-3 py-4">
                         <div class="w-16 h-16 rounded-2xl bg-emerald-400/20 border border-emerald-300/40 flex items-center justify-center mx-auto text-emerald-300">
@@ -446,14 +457,13 @@
                         <p class="text-sm text-slate-300">Перегляньте згенерований ключ, за потреби відредагуйте бали та відповіді. Підтвердьте перехід до перевірки робіт.</p>
                     </div>
                 </div>
-                <!-- Step 4 -->
                 <div class="onboarding-step" data-step="4">
                     <div class="text-center space-y-3 py-4">
                         <div class="w-16 h-16 rounded-2xl bg-purple-400/20 border border-purple-300/40 flex items-center justify-center mx-auto text-purple-300">
                             <i class="ph-duotone ph-sparkle text-3xl"></i>
                         </div>
                         <h3 class="text-xl font-bold text-white">Крок 4. Результати</h3>
-                        <p class="text-sm text-slate-300">Завантажте роботи учнів (можна об'єднувати кілька фото в одну роботу). AI виставить бали, рівень, помилки та поради. Експортуйте у CSV, Word або PDF.</p>
+                        <p class="text-sm text-slate-300">Завантажте роботи учнів. AI виставить бали, рівень, помилки та поради. Експортуйте у CSV, Word або PDF.</p>
                     </div>
                 </div>
             </div>
@@ -473,7 +483,8 @@
 
     <script type="module">
         const MODEL_NAME = 'gemini-3.1-flash-lite';
-        
+        const REQUEST_DELAY_MS = 6000; // пауза між запитами до Gemini
+
         const EVALUATION_CRITERIA = `
 Критерії оцінювання (12-бальна шкала, універсальні):
 1-3 бали (Початковий): учень розпізнає окремі об'єкти/факти, відповідає з суттєвими помилками, працює лише за зразком.
@@ -493,11 +504,10 @@
             keyQuestions: [],
             studentFiles: [],
             gradingResults: [],
-            cameraStream: null,
-            cameraTargetMode: null,
             genAI: null,
             onboardingStep: 1,
-            onboardingSeen: localStorage.getItem('onboarding_seen') === 'true'
+            onboardingSeen: localStorage.getItem('onboarding_seen') === 'true',
+            isGrading: false
         };
 
         let GoogleGenAI = null;
@@ -511,15 +521,11 @@
                 showToast('Не вдалося завантажити AI SDK. Перевірте інтернет.', 'error');
             }
 
-            // Прикріплюємо всі функції до window
             window.submitGateKey = submitGateKey;
             window.openApiKeyModal = openApiKeyModal;
             window.closeApiKeyModal = closeApiKeyModal;
             window.saveApiKeyModal = saveApiKeyModal;
             window.setStep = setStep;
-            window.openLiveCamera = openLiveCamera;
-            window.closeLiveCamera = closeLiveCamera;
-            window.captureCameraSnapshot = captureCameraSnapshot;
             window.handleTaskFileSelect = handleTaskFileSelect;
             window.removeTaskImage = removeTaskImage;
             window.generateKeyFromTask = generateKeyFromTask;
@@ -533,7 +539,6 @@
             window.copyTableForExcel = copyTableForExcel;
             window.exportCSV = exportCSV;
             window.exportDOCX = exportDOCX;
-            window.closeToast = closeToast;
             window.addMoreWorks = addMoreWorks;
             window.groupSelectedFiles = groupSelectedFiles;
             window.toggleFileSelection = toggleFileSelection;
@@ -545,20 +550,12 @@
             window.showToast = showToast;
 
             updateApiKeyBadge();
-
-            // Встановлюємо предмет з пам'яті
             document.getElementById('subjectInput').value = state.subject;
 
-            if (!state.onboardingSeen) {
-                openOnboarding();
-            }
+            if (!state.onboardingSeen) openOnboarding();
 
-            if (state.apiKey) {
-                if (initGenAI()) {
-                    showWorkflow();
-                } else {
-                    showAuthGate();
-                }
+            if (state.apiKey && initGenAI()) {
+                showWorkflow();
             } else {
                 showAuthGate();
             }
@@ -579,11 +576,9 @@
         function submitGateKey() {
             const key = document.getElementById('gateApiKeyInput').value.trim();
             if (!key) { showToast('Введіть API Key', 'warning'); return; }
-            
             state.apiKey = key;
             localStorage.setItem('gemini_api_key', key);
             updateApiKeyBadge();
-            
             if (initGenAI()) {
                 showWorkflow();
                 showToast('Ключ збережено. Переходимо до завдання.', 'success');
@@ -637,7 +632,6 @@
             updateOnboardingView();
             document.getElementById('onboardingModal').classList.remove('hidden');
         }
-
         function closeOnboarding() {
             document.getElementById('onboardingModal').classList.add('hidden');
             if (!state.onboardingSeen) {
@@ -645,23 +639,18 @@
                 localStorage.setItem('onboarding_seen', 'true');
             }
         }
-
         function nextOnboardingStep() {
             if (state.onboardingStep < 4) {
                 state.onboardingStep++;
                 updateOnboardingView();
-            } else {
-                closeOnboarding();
-            }
+            } else closeOnboarding();
         }
-
         function prevOnboardingStep() {
             if (state.onboardingStep > 1) {
                 state.onboardingStep--;
                 updateOnboardingView();
             }
         }
-
         function updateOnboardingView() {
             document.querySelectorAll('.onboarding-step').forEach(el => {
                 el.classList.toggle('active', parseInt(el.dataset.step) === state.onboardingStep);
@@ -677,12 +666,10 @@
         // === Steps ===
         function setStep(stepNum) {
             if (stepNum === 1 && state.currentStep !== 1) {
-                // Скидаємо ключ, якщо повертаємось на перший крок
                 state.keyQuestions = [];
                 document.getElementById('keyQuestionsList').innerHTML = '';
                 document.getElementById('totalKeyPoints').textContent = '0 б.';
             }
-
             if (stepNum > 1 && !state.keyQuestions.length) {
                 showToast('Спочатку згенеруйте ключ на Кроці 1.', 'warning');
                 return;
@@ -691,83 +678,16 @@
             document.getElementById('step1Container').classList.toggle('hidden', stepNum !== 1);
             document.getElementById('step2Container').classList.toggle('hidden', stepNum !== 2);
             document.getElementById('step3Container').classList.toggle('hidden', stepNum !== 3);
-
             for (let i = 1; i <= 3; i++) {
                 const el = document.getElementById('stepIndicator' + i);
-                if (i === stepNum) {
-                    el.className = 'step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold';
-                } else {
-                    el.className = 'step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs sm:text-sm';
-                }
+                el.className = i === stepNum
+                    ? 'step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold'
+                    : 'step-indicator flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs sm:text-sm';
             }
         }
 
-        // === Camera ===
-        async function openLiveCamera(targetMode) {
-            state.cameraTargetMode = targetMode;
-            const modal = document.getElementById('cameraModal');
-            const video = document.getElementById('cameraStreamVideo');
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                const fallbackId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
-                document.getElementById(fallbackId)?.click();
-                return;
-            }
-
-            try {
-                let stream = null;
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } } });
-                } catch (e) {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
-                }
-                state.cameraStream = stream;
-                video.srcObject = stream;
-                modal.classList.remove('hidden');
-            } catch (err) {
-                showToast('Камера недоступна, відкриваємо галерею.', 'info');
-                const fallbackId = targetMode === 'task' ? 'taskFileInput' : 'studentsFileInput';
-                document.getElementById(fallbackId)?.click();
-            }
-        }
-
-        function closeLiveCamera() {
-            if (state.cameraStream) {
-                state.cameraStream.getTracks().forEach(t => t.stop());
-                state.cameraStream = null;
-            }
-            document.getElementById('cameraModal').classList.add('hidden');
-        }
-
-        function captureCameraSnapshot() {
-            const video = document.getElementById('cameraStreamVideo');
-            const canvas = document.getElementById('cameraCanvas');
-            canvas.width = video.videoWidth || 1280;
-            canvas.height = video.videoHeight || 720;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-            closeLiveCamera();
-
-            if (state.cameraTargetMode === 'task') {
-                state.taskImageBase64 = dataUrl.split(',')[1];
-                state.taskImageType = 'image/jpeg';
-                document.getElementById('taskPreviewImg').src = dataUrl;
-                document.getElementById('taskDropZone').classList.add('hidden');
-                document.getElementById('taskPreviewContainer').classList.remove('hidden');
-            } else {
-                state.studentFiles.push({
-                    name: `Робота_${state.studentFiles.length + 1}`,
-                    pages: [{ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' }],
-                    previewUrl: dataUrl,
-                    selected: false
-                });
-                renderStudentFilesList();
-            }
-        }
-
-        // === File handling ===
-        function compressImage(file, maxSize = 1600) {
+        // === Image compression ===
+        function compressImage(file, maxSize = 1600, quality = 0.8) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (evt) => {
@@ -784,9 +704,10 @@
                         }
                         canvas.width = width;
                         canvas.height = height;
-                        const ctx = canvas.getContext('2d');
+                        const ctx = canvas.getContext('2d', { alpha: false });
                         ctx.drawImage(img, 0, 0, width, height);
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        canvas.width = canvas.height = 0;
                         resolve(dataUrl);
                     };
                     img.onerror = reject;
@@ -810,6 +731,7 @@
             } catch (err) {
                 showToast('Помилка обробки зображення.', 'error');
             }
+            e.target.value = '';
         }
 
         function removeTaskImage() {
@@ -826,14 +748,12 @@
                 try {
                     const dataUrl = await compressImage(file);
                     state.studentFiles.push({
-                        name: file.name,
+                        name: file.name || `Робота_${state.studentFiles.length + 1}`,
                         pages: [{ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' }],
                         previewUrl: dataUrl,
                         selected: false
                     });
-                } catch (err) {
-                    console.error(err);
-                }
+                } catch (err) { console.error(err); }
             }
             renderStudentFilesList();
             e.target.value = '';
@@ -845,16 +765,14 @@
             const subject = document.getElementById('subjectInput').value.trim();
             if (!customClass) { showToast('Вкажіть клас (напр., 7-А).', 'warning'); return; }
             if (!subject) { showToast('Вкажіть предмет.', 'warning'); return; }
-            
+
             const newTopic = document.getElementById('taskContextInput').value.trim();
 
-            // Очищення, якщо змінився клас або предмет
             if (state.selectedClass !== customClass || state.subject !== subject) {
                 state.gradingResults = [];
                 document.getElementById('studentResultsTableBody').innerHTML = '';
                 document.getElementById('resultsContainer').classList.add('hidden');
             }
-
             state.selectedClass = customClass;
             state.subject = subject;
             state.taskTopic = newTopic;
@@ -897,7 +815,6 @@ ${EVALUATION_CRITERIA}
                     }],
                     config: { responseMimeType: 'application/json' }
                 });
-
                 const parsed = JSON.parse(response.text);
                 state.keyQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
                 document.getElementById('displaySelectedClass').textContent = state.selectedClass;
@@ -907,7 +824,7 @@ ${EVALUATION_CRITERIA}
                 showToast('Ключ готовий. Перевірте бали та підтвердьте.', 'success');
             } catch (err) {
                 console.error(err);
-                showToast('Помилка: ' + err.message, 'error');
+                showToast(formatError(err), 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="ph-bold ph-sparkle text-lg"></i><span>Згенерувати ключ</span>`;
@@ -918,7 +835,6 @@ ${EVALUATION_CRITERIA}
             const container = document.getElementById('keyQuestionsList');
             container.innerHTML = '';
             let total = 0;
-
             state.keyQuestions.forEach((q, idx) => {
                 total += parseFloat(q.maxPoints) || 0;
                 const div = document.createElement('div');
@@ -930,7 +846,7 @@ ${EVALUATION_CRITERIA}
                             <input type="text" value="${escapeHtml(q.text || '')}" onchange="updateKeyQuestion(${idx}, 'text', this.value)" class="glass-input px-2 py-1 text-xs w-full font-semibold">
                         </div>
                         <div class="flex items-center space-x-1 shrink-0">
-                            <input type="number" step="0.5" min="0" max="12" value="${q.maxPoints ?? 1}" onchange="updateKeyQuestion(${idx}, 'maxPoints', parseFloat(this.value)||0)" class="glass-input w-14 text-center text-xs font-bold text-amber-300">
+                            <input type="number" step="0.5" min="0" max="12" value="${q.maxPoints ?? 1}" onchange="updateKeyQuestion(${idx}, 'maxPoints', parseFloat(this.value)||0)" class="glass-input w-16 text-center text-xs font-bold text-amber-300">
                             <span class="text-xs">б.</span>
                             <button onclick="deleteKeyQuestion(${idx})" class="text-rose-400 p-1"><i class="ph-bold ph-trash text-sm"></i></button>
                         </div>
@@ -954,7 +870,6 @@ ${EVALUATION_CRITERIA}
             state.keyQuestions.push({ num: String(state.keyQuestions.length + 1), text: 'Нове завдання', key: 'Еталон', maxPoints: 1 });
             renderKeyQuestions();
         }
-
         function confirmKeyAndProceed() {
             if (!state.keyQuestions.length) return;
             setStep(3);
@@ -966,7 +881,6 @@ ${EVALUATION_CRITERIA}
             const container = document.getElementById('studentFilesList');
             container.innerHTML = '';
             let hasSelected = false;
-
             state.studentFiles.forEach((file, idx) => {
                 if (file.selected) hasSelected = true;
                 const card = document.createElement('div');
@@ -976,64 +890,49 @@ ${EVALUATION_CRITERIA}
                     <img src="${file.previewUrl}" class="h-16 w-full object-cover rounded-md" alt="Робота ${idx + 1}">
                     <div class="text-[9px] text-slate-400 truncate mt-0.5">${escapeHtml(file.name)}</div>
                     <div class="text-[8px] text-amber-300 font-bold">${file.pages.length} стор.</div>
-                    <button onclick="removeStudentFile(${idx})" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-[11px]" aria-label="Видалити">×</button>
+                    <button onclick="removeStudentFile(${idx})" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-[12px]" aria-label="Видалити">×</button>
                 `;
                 container.appendChild(card);
             });
-
             document.getElementById('btnStartGrading').disabled = state.studentFiles.length === 0;
             document.getElementById('groupActions').classList.toggle('hidden', !hasSelected);
         }
-
         function toggleFileSelection(idx) {
             state.studentFiles[idx].selected = !state.studentFiles[idx].selected;
             renderStudentFilesList();
         }
-
         function groupSelectedFiles() {
-            const selectedIndices = state.studentFiles
-                .map((f, i) => f.selected ? i : -1)
-                .filter(i => i !== -1);
-
-            if (selectedIndices.length < 2) {
-                showToast("Виберіть хоча б 2 файли для об'єднання.", 'warning');
-                return;
-            }
-
+            const selectedIndices = state.studentFiles.map((f, i) => f.selected ? i : -1).filter(i => i !== -1);
+            if (selectedIndices.length < 2) { showToast("Виберіть хоча б 2 файли.", 'warning'); return; }
             const firstIdx = selectedIndices[0];
             const baseFile = state.studentFiles[firstIdx];
             const allPages = [];
-            selectedIndices.forEach(idx => {
-                allPages.push(...state.studentFiles[idx].pages);
-            });
-
+            selectedIndices.forEach(idx => allPages.push(...state.studentFiles[idx].pages));
             const mergedFile = {
                 name: `Робота (${allPages.length} стор.)`,
                 pages: allPages,
                 previewUrl: baseFile.previewUrl,
                 selected: false
             };
-
-            selectedIndices.sort((a, b) => b - a).forEach(idx => {
-                state.studentFiles.splice(idx, 1);
-            });
-
+            selectedIndices.sort((a, b) => b - a).forEach(idx => state.studentFiles.splice(idx, 1));
             state.studentFiles.unshift(mergedFile);
             renderStudentFilesList();
-            showToast(`Об'єднано ${selectedIndices.length} файлів в одну роботу.`, 'success');
+            showToast(`Об'єднано ${selectedIndices.length} файлів.`, 'success');
         }
-
         function removeStudentFile(idx) {
             state.studentFiles.splice(idx, 1);
             renderStudentFilesList();
         }
 
-        // === Grading ===
+        // === Grading with progress + delay ===
         async function startBatchGrading() {
-            if (!state.studentFiles.length) return;
+            if (!state.studentFiles.length || state.isGrading) return;
+            state.isGrading = true;
+
             document.getElementById('gradingLoader').classList.remove('hidden');
             document.getElementById('resultsContainer').classList.add('hidden');
 
+            const total = state.studentFiles.length;
             const keyPromptStr = JSON.stringify(state.keyQuestions);
             const prompt = `Ти — учитель ${state.subject}. Перевір письмову роботу учня ${state.selectedClass} класу за цим ключем:
 ${keyPromptStr}
@@ -1055,19 +954,26 @@ ${EVALUATION_CRITERIA}
 }`;
 
             const newResults = [];
-            for (const file of state.studentFiles) {
+            const startTime = Date.now();
+
+            for (let i = 0; i < total; i++) {
+                const file = state.studentFiles[i];
+                const elapsed = Date.now() - startTime;
+                const avg = elapsed / Math.max(1, i);
+                const etaSec = i === 0 ? '—' : Math.round((total - i) * (avg / 1000 + REQUEST_DELAY_MS / 1000));
+                const pct = Math.round(((i) / total) * 100);
+                setProgress(true, pct, `Робота ${i + 1} з ${total}${etaSec !== '—' ? ` · ~${etaSec} с` : ''}`);
+
+                if (i > 0) await sleep(REQUEST_DELAY_MS);
+
                 try {
                     const parts = [{ text: prompt }];
-                    file.pages.forEach(page => {
-                        parts.push({ inlineData: { mimeType: page.mimeType, data: page.base64 } });
-                    });
-
+                    file.pages.forEach(page => parts.push({ inlineData: { mimeType: page.mimeType, data: page.base64 } }));
                     const response = await state.genAI.models.generateContent({
                         model: MODEL_NAME,
-                        contents: [{ role: 'user', parts: parts }],
+                        contents: [{ role: 'user', parts }],
                         config: { responseMimeType: 'application/json' }
                     });
-
                     const parsed = JSON.parse(response.text);
                     newResults.push({
                         studentName: parsed.studentName || file.name,
@@ -1083,38 +989,43 @@ ${EVALUATION_CRITERIA}
                         studentName: file.name,
                         totalScore: 0,
                         level: 'Помилка',
-                        mistakes: 'Помилка: ' + e.message,
+                        mistakes: formatError(e),
                         feedback: 'Перевірити вручну.',
                         teacherAdvice: 'Ручна перевірка.'
                     });
                 }
+                setProgress(true, Math.round(((i + 1) / total) * 100), `Готово: ${i + 1} з ${total}`);
             }
 
             state.gradingResults = state.gradingResults.concat(newResults);
             state.studentFiles = [];
-            
             renderResultsTable();
             renderStudentFilesList();
-            
+
             document.getElementById('gradingLoader').classList.add('hidden');
             document.getElementById('resultsContainer').classList.remove('hidden');
             showToast(`Перевірено: ${newResults.length} робіт. Всього: ${state.gradingResults.length}.`, 'success');
+            state.isGrading = false;
+        }
+
+        function setProgress(visible, percent = 0, label = '') {
+            document.getElementById('gradingLoader').classList.toggle('hidden', !visible);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = Math.round(percent) + '%';
+            document.getElementById('progressLabel').textContent = label;
         }
 
         function renderResultsTable() {
             const tbody = document.getElementById('studentResultsTableBody');
             tbody.innerHTML = '';
             let summary = [];
-
             state.gradingResults.forEach((res, idx) => {
                 if (res.teacherAdvice) summary.push(`• ${res.studentName}: ${res.teacherAdvice}`);
-
                 let levelColor = 'text-slate-300';
                 if (res.level === 'Високий') levelColor = 'text-emerald-400 font-bold';
                 else if (res.level === 'Достатній') levelColor = 'text-amber-400 font-bold';
                 else if (res.level === 'Середній') levelColor = 'text-orange-400 font-bold';
                 else if (res.level === 'Початковий') levelColor = 'text-rose-400 font-bold';
-
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-white/5 border-b border-white/10';
                 tr.innerHTML = `
@@ -1130,7 +1041,6 @@ ${EVALUATION_CRITERIA}
                 `;
                 tbody.appendChild(tr);
             });
-
             document.getElementById('classMistakesSummaryText').textContent = summary.length ? summary.join('\n') : 'Типових помилок не виявлено.';
         }
 
@@ -1149,11 +1059,7 @@ ${EVALUATION_CRITERIA}
             state.gradingResults.forEach(r => {
                 tsv += `${state.selectedClass}\t${state.subject}\t${r.studentName}\t${r.totalScore}\t${r.level}\t${r.mistakes}\t${r.feedback}\t${r.teacherAdvice}\n`;
             });
-            navigator.clipboard.writeText(tsv).then(() => {
-                showToast('Скопійовано в буфер обміну.', 'success');
-            }).catch(() => {
-                showToast('Не вдалося скопіювати.', 'error');
-            });
+            navigator.clipboard.writeText(tsv).then(() => showToast('Скопійовано.', 'success')).catch(() => showToast('Не вдалося скопіювати.', 'error'));
         }
 
         function exportCSV() {
@@ -1169,12 +1075,11 @@ ${EVALUATION_CRITERIA}
             link.href = URL.createObjectURL(blob);
             link.download = `Результати_${state.selectedClass}.csv`;
             link.click();
-            showToast('CSV-файл завантажено.', 'success');
+            showToast('CSV завантажено.', 'success');
         }
 
         function exportDOCX() {
             if (!state.gradingResults.length) return;
-
             let htmlDoc = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><title>Результати</title>
@@ -1198,7 +1103,6 @@ ${EVALUATION_CRITERIA}
                         <thead><tr><th>Клас</th><th>Учень</th><th>Оцінка</th><th>Рівень</th><th>Помилки</th><th>Фідбек</th><th>Порада</th></tr></thead>
                         <tbody>
             `;
-
             state.gradingResults.forEach(r => {
                 htmlDoc += `
                     <tr>
@@ -1212,27 +1116,23 @@ ${EVALUATION_CRITERIA}
                     </tr>
                 `;
             });
-
             htmlDoc += `</tbody></table></body></html>`;
-
             const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `Результати_${state.selectedClass}.doc`;
             link.click();
-            showToast('Word-файл завантажено.', 'success');
+            showToast('Word завантажено.', 'success');
         }
 
         // === Reset ===
         function resetAll() {
-            if (!confirm('Ви впевнені, що хочете очистити всі результати та почати з нуля?')) return;
-            
+            if (!confirm('Ви впевнені, що хочете очистити всі результати?')) return;
             state.gradingResults = [];
             state.keyQuestions = [];
             state.studentFiles = [];
             state.selectedClass = '';
             state.taskTopic = '';
-            
             document.getElementById('customClassInput').value = '';
             document.getElementById('taskContextInput').value = '';
             document.getElementById('studentResultsTableBody').innerHTML = '';
@@ -1242,9 +1142,18 @@ ${EVALUATION_CRITERIA}
             document.getElementById('taskDropZone').classList.remove('hidden');
             document.getElementById('taskPreviewImg').src = '';
             state.taskImageBase64 = null;
-            
             setStep(1);
-            showToast('Всі дані очищено. Починаємо спочатку.', 'info');
+            showToast('Всі дані очищено.', 'info');
+        }
+
+        // === Error formatting ===
+        function formatError(e) {
+            const s = String(e?.message || e);
+            if (/401|403/.test(s)) return 'Ключ не підходить. Перевірте його правильність.';
+            if (/429/.test(s)) return 'Ліміт вичерпано (429). Зачекайте 1–2 хвилини.';
+            if (/413/.test(s)) return 'Фото завелике. Спробуйте стиснути.';
+            if (/fetch|network/i.test(s)) return 'Проблема зі зʼєднанням. Перевірте інтернет.';
+            return s;
         }
 
         // === Toast ===
@@ -1267,23 +1176,28 @@ ${EVALUATION_CRITERIA}
             setTimeout(() => {
                 toast.style.animation = 'fadeOut 0.3s ease forwards';
                 setTimeout(() => toast.remove(), 300);
-            }, 4500);
-        }
-
-        function closeToast(btn) {
-            const toast = btn.closest('.toast');
-            if (toast) toast.remove();
+            }, 5000);
         }
 
         function escapeHtml(str) {
-            return String(str ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
+            return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // === Memory cleanup ===
+        window.addEventListener('pagehide', () => {
+            state.taskImageBase64 = null;
+            state.studentFiles = [];
+        });
+
         initApp();
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
     </script>
 </body>
 </html>
